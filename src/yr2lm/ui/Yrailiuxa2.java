@@ -9,6 +9,7 @@ import arc.scene.event.Touchable;
 import arc.scene.ui.Label;
 import arc.scene.ui.layout.Table;
 import arc.util.Align;
+import mindustry.Vars;
 import mindustry.ui.Styles;
 
 public class Yrailiuxa2 extends Table {
@@ -19,8 +20,9 @@ public class Yrailiuxa2 extends Table {
     protected final Table mainTable = new Table();
     protected final Vec2 pos = new Vec2(), size = new Vec2(), bias = new Vec2();
     protected final Vec2 minSize = new Vec2();
+    public boolean hidden = false;
     public Yrailiuxa2(String text) {
-        init();
+        name = text;
         setSize(minSize.x, minSize.y);
         background(Styles.black3).top();
         headTableInit(text);
@@ -118,8 +120,12 @@ public class Yrailiuxa2 extends Table {
             }
         });
     }
-    public void init() {}
     public void addToScene() {
         Core.scene.root.addChild(this);
+        visible(() -> Vars.state.isGame() && Vars.ui.hudfrag.shown && !hidden);
+    }
+
+    public void removeFromScene() {
+        Core.scene.root.removeChild(this);
     }
 }
