@@ -10,7 +10,7 @@ import yr2lm.ui.Combination;
 public class Yr2lmain extends Mod{
     public Yr2lmain(){
         Events.on(EventType.ClientLoadEvent.class, e -> Time.runTask(10f, () -> {
-            Combination combination = new Combination("com");
+            Combination combination = new Combination("yr2lm");
             combination.addToScene();
         }));
     }
