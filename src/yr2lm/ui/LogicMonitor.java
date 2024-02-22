@@ -18,15 +18,13 @@ import mindustry.world.blocks.logic.LogicBlock;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 
-public class LogicMonitor extends Yrailiuxa2{
-
-    private final Table monitorTable = new Table();
+public class LogicMonitor extends Monitor {
     private final LogicBlock.LogicBuild logicBuild;
 
     private final ArrayList<LExecutor.Var> constants = new ArrayList<>();
     private final ArrayList<LExecutor.Var> links = new ArrayList<>();
     private class VarTable extends Table {
-        public VarTable(LExecutor.Var var, String varName) {
+        private VarTable(LExecutor.Var var, String varName) {
             super();
             table(t -> {
                 t.table(ttt -> ttt.labelWrap(varName).minWidth(150).grow()).grow().pad(0, 10, 0, 5);
@@ -54,21 +52,13 @@ public class LogicMonitor extends Yrailiuxa2{
     }
 
     public LogicMonitor(String text, LogicBlock.LogicBuild logicBuild, Vec2 pos) {
-        super(text);
+        super(text, logicBuild, pos);
         this.logicBuild = logicBuild;
-        this.pos.set(pos.sub(0, 300));
-        size.set(400, 300);
-        minSize.set(400, 300);
-        monitorTableInit();
-        mainTable.add(monitorTable).grow().left();
-        mainTable.update(() -> {
-            Element e = Core.scene.hit(Core.input.mouseX(), Core.input.mouseY(), true);
-            if (e != null && e.isDescendantOf(mainTable))
-                Drawf.select(logicBuild.x, logicBuild.y, logicBuild.block.size * 4, Color.valueOf("00ffff"));
-        });
+        init();
     }
 
-    public void monitorTableInit() {
+    @Override
+    public void init() {
         monitorTable.clear();
         constants.clear();
         links.clear();
@@ -79,7 +69,7 @@ public class LogicMonitor extends Yrailiuxa2{
             }).grow();
             t.button(Icon.trash, Styles.emptyi, () -> {
                 logicBuild.updateCode(logicBuild.code);
-                monitorTableInit();
+                init();
             }).grow();
 
         }).height(40).grow();

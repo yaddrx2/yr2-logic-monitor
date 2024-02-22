@@ -8,23 +8,30 @@ import mindustry.Vars;
 import mindustry.gen.Building;
 import mindustry.graphics.Drawf;
 import mindustry.ui.Styles;
-import mindustry.world.blocks.logic.LogicBlock;
+import mindustry.world.blocks.logic.*;
 
 import java.util.ArrayList;
 
 public class Combination extends Yrailiuxa2 {
 
     private Table combinationTable;
-    private Table monitorsTable;
-    private final ArrayList<LogicMonitor> monitors = new ArrayList<>();
+    private final Table monitorsTable;
+    private final ArrayList<Monitor> monitors;
+    private final ArrayList<Object> molds;
+
     private boolean binding;
 
     public Combination(String text) {
         super(text);
         size.set(400, 300);
         minSize.set(200, 150);
+        monitorsTable = new Table();
         combinationTableInit();
         mainTable.add(combinationTable).grow().left();
+        monitors = new ArrayList<>();
+        molds = new ArrayList<>();
+        molds.add(LogicBlock.LogicBuild.class);
+        molds.add(MemoryBlock.MemoryBuild.class);
     }
 
     private void combinationTableInit() {
@@ -35,14 +42,9 @@ public class Combination extends Yrailiuxa2 {
                     int x = (int) (Core.input.mouseWorldX() / 8 + 0.5f);
                     int y = (int) (Core.input.mouseWorldY() / 8 + 0.5f);
                     Building selected = Vars.world.build(x, y);
-                    if (selected instanceof LogicBlock.LogicBuild logicBuild) {
-                        Drawf.select(logicBuild.x, logicBuild.y, logicBuild.block.size * 4, Color.valueOf("00ffff"));
-                        if (Core.input.isTouched()) {
-                            LogicMonitor logicMonitor = new LogicMonitor(logicBuild.block.name + "(" + x + ", " + y + ")", logicBuild, Core.input.mouse());
-                            logicMonitor.addToScene();
-                            monitors.add(logicMonitor);
-                            monitorsTableBuild();
-                        }
+                    if (selected != null && molds.contains(selected.getClass())) {
+                        Drawf.select(selected.x, selected.y, selected.block.size * 4, Color.valueOf("00ffff"));
+                        if (Core.input.isTouched()) addToCombination(selected);
                     }
                     if (Core.input.isTouched()) {
                         b.setText("add");
@@ -51,21 +53,33 @@ public class Combination extends Yrailiuxa2 {
                 }
             })).growX().height(50);
             t.row();
-            monitorsTable = new Table();
             t.add(monitorsTable).grow();
         });
+    }
+
+    private void addToCombination(Building building) {
+        Monitor monitor = null;
+        if (building instanceof LogicBlock.LogicBuild logicBuild) {
+            monitor = new LogicMonitor(building.block.name + "(" + building.x / 8 + ", " + building.y / 8 + ")", logicBuild, Core.input.mouse());
+        } else if (building instanceof MemoryBlock.MemoryBuild memoryBuild) {
+            monitor = new MemoryMonitor(building.block.name + "(" + building.x / 8 + ", " + building.y / 8 + ")", memoryBuild, Core.input.mouse());
+        }
+        assert monitor != null;
+        monitor.addToScene();
+        monitors.add(monitor);
+        monitorsTableBuild();
     }
 
     private void monitorsTableBuild() {
         monitorsTable.clear();
         monitorsTable.table(t -> t.pane(p -> {
-            for (LogicMonitor monitor : monitors) {
+            for (Monitor monitor : monitors) {
                 p.table(tt -> {
                     tt.table(ttt -> ttt.labelWrap(monitor.name).grow()).grow().pad(0, 10, 0, 5);
                     tt.table(ttt -> {
                         ttt.button("show", Styles.cleart, () -> monitor.hidden = !monitor.hidden).grow()
                                 .update(b -> b.setText(monitor.visible ? "show" : "hidden"));
-                        ttt.button("refresh", Styles.cleart, monitor::monitorTableInit).grow();
+                        ttt.button("refresh", Styles.cleart, monitor::init).grow();
                         ttt.button("delete", Styles.cleart, () -> {
                             monitors.remove(monitor);
                             monitor.removeFromScene();
