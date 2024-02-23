@@ -7,6 +7,8 @@ import mindustry.gen.Icon;
 import mindustry.ui.Styles;
 import mindustry.world.blocks.logic.MemoryBlock;
 
+import java.math.BigDecimal;
+
 import static arc.scene.ui.TextField.TextFieldFilter.digitsOnly;
 
 public class MemoryMonitor extends Monitor {
@@ -58,9 +60,10 @@ public class MemoryMonitor extends Monitor {
         }).height(40).grow();
         monitorTable.row();
         monitorTable.table(t -> t.pane(p -> {
-            for (int i = start; i < end; i += step) {
-                int finalI = i;
-                p.labelWrap(() -> String.valueOf(memoryBuild.memory[finalI])).minHeight(35).growX().pad(0, 5, 0, 5);
+            for (int i = start; i < end / step; i ++) {
+                int index = i * step;
+                if (i % col == 0) p.labelWrap("#" + index).size(50, 35).pad(0, 10, 0, 5);
+                p.labelWrap(() -> BigDecimal.valueOf(memoryBuild.memory[index]).stripTrailingZeros().toPlainString()).minHeight(35).growX().pad(0, 5, 0, 5);
                 if (i % col == col - 1) p.row();
             }
         }).grow().update(p -> {
