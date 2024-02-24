@@ -3,6 +3,8 @@ package yr2lm.ui;
 import arc.Core;
 import arc.math.geom.Vec2;
 import arc.scene.Element;
+import arc.scene.ui.Label;
+import arc.util.Align;
 import mindustry.gen.Icon;
 import mindustry.ui.Styles;
 import mindustry.world.blocks.logic.MemoryBlock;
@@ -56,14 +58,17 @@ public class MemoryMonitor extends Monitor {
                     col = 8;
                 }
             }).minWidth(50).grow();
-            t.button(Icon.refresh, Styles.emptyi, this::init).grow();
+            t.button(Icon.refresh, Styles.emptyi, this::init).size(50);
         }).height(40).grow();
         monitorTable.row();
         monitorTable.table(t -> t.pane(p -> {
             for (int i = start; i < end / step; i ++) {
                 int index = i * step;
-                if (i % col == 0) p.labelWrap("#" + index).size(50, 35).pad(0, 10, 0, 5);
-                p.labelWrap(() -> BigDecimal.valueOf(memoryBuild.memory[index]).stripTrailingZeros().toPlainString()).minHeight(35).growX().pad(0, 5, 0, 5);
+                if (i % col == 0) p.labelWrap("#" + index).size(60, 35).pad(0, 10, 0, 5);
+                Label label = new Label(() -> BigDecimal.valueOf(memoryBuild.memory[index]).stripTrailingZeros().toPlainString());
+                label.setWrap(true);
+                label.setAlignment(Align.right);
+                p.add(label).minHeight(35).growX().pad(0, 5, 0, 5);
                 if (i % col == col - 1) p.row();
             }
         }).grow().update(p -> {

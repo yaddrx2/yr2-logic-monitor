@@ -3,12 +3,15 @@ package yr2lm.ui;
 import arc.Core;
 import arc.graphics.Color;
 import arc.scene.Element;
+import arc.scene.ui.ImageButton;
 import arc.scene.ui.layout.Table;
 import mindustry.Vars;
 import mindustry.gen.Building;
+import mindustry.gen.Icon;
 import mindustry.graphics.Drawf;
 import mindustry.ui.Styles;
-import mindustry.world.blocks.logic.*;
+import mindustry.world.blocks.logic.LogicBlock;
+import mindustry.world.blocks.logic.MemoryBlock;
 
 import java.util.ArrayList;
 
@@ -17,7 +20,7 @@ public class Combination extends Yrailiuxa2 {
     private Table combinationTable;
     private final Table monitorsTable;
     private final ArrayList<Monitor> monitors;
-    private final ArrayList<Object> molds;
+    private final ArrayList<Class<? extends Building>> molds;
 
     private boolean binding;
 
@@ -38,7 +41,7 @@ public class Combination extends Yrailiuxa2 {
         combinationTable = new Table(t -> {
             t.table(tt -> tt.button("add", Styles.cleart, () -> binding = !binding).grow().update(b -> {
                 if (binding) {
-                    b.setText("choose logic-process");
+                    b.setText("choose building");
                     int x = (int) (Core.input.mouseWorldX() / 8 + 0.5f);
                     int y = (int) (Core.input.mouseWorldY() / 8 + 0.5f);
                     Building selected = Vars.world.build(x, y);
@@ -77,15 +80,24 @@ public class Combination extends Yrailiuxa2 {
                 p.table(tt -> {
                     tt.table(ttt -> ttt.labelWrap(monitor.name).grow()).grow().pad(0, 10, 0, 5);
                     tt.table(ttt -> {
-                        ttt.button("show", Styles.cleart, () -> monitor.hidden = !monitor.hidden).grow()
-                                .update(b -> b.setText(monitor.visible ? "show" : "hidden"));
-                        ttt.button("refresh", Styles.cleart, monitor::init).grow();
-                        ttt.button("delete", Styles.cleart, () -> {
+                        ImageButton visibleButton = new ImageButton();
+                        ImageButton.ImageButtonStyle style = new ImageButton.ImageButtonStyle(Styles.emptyi);
+                        style.imageUp = Icon.eyeSmall;
+                        visibleButton.setStyle(style);
+                        visibleButton.resizeImage(35);
+                        visibleButton.clicked(() -> {
+                            monitor.hidden = !monitor.hidden;
+                            style.imageUp = monitor.hidden ? Icon.eyeOffSmall : Icon.eyeSmall;
+                            visibleButton.setStyle(style);
+                        });
+                        ttt.add(visibleButton);
+                        ttt.button(Icon.refresh, Styles.emptyi, monitor::init).size(35);
+                        ttt.button(Icon.trash, Styles.emptyi, () -> {
                             monitors.remove(monitor);
                             monitor.removeFromScene();
                             monitorsTableBuild();
-                        }).grow();
-                    }).grow().pad(0, 5, 0, 10);
+                        }).size(35);
+                    }).pad(0, 5, 0, 10);
                 }).height(35).growX();
                 p.row();
             }
