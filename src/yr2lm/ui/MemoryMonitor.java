@@ -16,6 +16,8 @@ import static arc.scene.ui.TextField.TextFieldFilter.digitsOnly;
 public class MemoryMonitor extends Monitor {
     private final MemoryBlock.MemoryBuild memoryBuild;
     private int start, end, step, col;
+    private boolean editMode;
+    private double[] memory;
     public MemoryMonitor(String s, MemoryBlock.MemoryBuild memoryBuild, Vec2 pos) {
         super(s, memoryBuild, pos);
         this.memoryBuild = memoryBuild;
@@ -23,6 +25,7 @@ public class MemoryMonitor extends Monitor {
         end = ((MemoryBlock) this.memoryBuild.block).memoryCapacity;
         step = 1;
         col = 8;
+        editMode = false;
         init();
     }
 
@@ -36,32 +39,63 @@ public class MemoryMonitor extends Monitor {
                 } catch (NumberFormatException exception) {
                     start = 0;
                 }
-            }).minWidth(50).grow();
+            }).minWidth(50).grow().pad(0, 5, 0, 5);
             t.field(String.valueOf(end), digitsOnly, s -> {
                 try {
                     end = Math.min(Math.max(0, Integer.parseInt(s)), ((MemoryBlock) this.memoryBuild.block).memoryCapacity);
                 } catch (NumberFormatException exception) {
                     end = ((MemoryBlock) this.memoryBuild.block).memoryCapacity;
                 }
-            }).minWidth(50).grow();
+            }).minWidth(50).grow().pad(0, 5, 0, 5);
             t.field(String.valueOf(step), digitsOnly, s -> {
                 try {
                     step = Integer.parseInt(s);
                 } catch (NumberFormatException exception) {
                     step = 1;
                 }
-            }).minWidth(50).grow();
+            }).minWidth(50).grow().pad(0, 5, 0, 5);
             t.field(String.valueOf(col), digitsOnly, s -> {
                 try {
                     col = Math.max(Integer.parseInt(s), 1);
                 } catch (NumberFormatException exception) {
                     col = 8;
                 }
-            }).minWidth(50).grow();
+            }).minWidth(50).grow().pad(0, 5, 0, 5);
             t.button(Icon.refresh, Styles.emptyi, this::init).size(50);
+            t.button(Icon.edit, Styles.emptyi, () -> {
+                if (editMode) {
+                    memoryBuild.memory = memory;
+                    editMode = false;
+                } else {
+                    memory = memoryBuild.memory.clone();
+                    editMode = true;
+                }
+                init();
+            }).size(50);
         }).height(40).grow();
         monitorTable.row();
-        monitorTable.table(t -> t.pane(p -> {
+        if (editMode) monitorTable.table(t -> t.pane(p -> {
+            for (int i = start; i < end / step; i ++) {
+                int index = i * step;
+                if (i % col == 0) p.labelWrap("#" + index).size(60, 40).pad(0, 10, 0, 5);
+                p.field(BigDecimal.valueOf(memoryBuild.memory[index]).stripTrailingZeros().toPlainString(), s -> {
+                    try {
+                        memory[index] = Double.parseDouble(s);
+                    } catch (NumberFormatException exception) {
+                        memory[index] = 0;
+                    }
+                }).minWidth(60).grow().pad(0, 5, 0, 5);
+                if (i % col == col - 1) p.row();
+            }
+        }).fill().update(p -> {
+            Element e = Core.scene.hit(Core.input.mouseX(), Core.input.mouseY(), true);
+            if (e != null && e.isDescendantOf(p)) p.requestScroll();
+            else if (p.hasScroll()) Core.scene.setScrollFocus(null);
+        }).with(p -> {
+            p.setupFadeScrollBars(0.5f, 0.25f);
+            p.setFadeScrollBars(true);
+        })).grow();
+        else monitorTable.table(t -> t.pane(p -> {
             for (int i = start; i < end / step; i ++) {
                 int index = i * step;
                 if (i % col == 0) p.labelWrap("#" + index).size(60, 35).pad(0, 10, 0, 5);

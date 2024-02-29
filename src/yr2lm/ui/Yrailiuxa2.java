@@ -32,7 +32,7 @@ public class Yrailiuxa2 extends Table {
         table(t -> {
             t.add(mainTable).top().growX();
             t.add(sideTable).width(30).growY();
-        }).grow();
+        }).minWidth(minSize.x).grow();
         row();
         table(t -> {
             t.add(bottomTable).height(30).growX();
