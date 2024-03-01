@@ -39,28 +39,28 @@ public class MemoryMonitor extends Monitor {
                 } catch (NumberFormatException exception) {
                     start = 0;
                 }
-            }).minWidth(50).grow().pad(0, 5, 0, 5);
+            }).minWidth(0).grow().pad(0, 5, 0, 5);
             t.field(String.valueOf(end), digitsOnly, s -> {
                 try {
                     end = Math.min(Math.max(0, Integer.parseInt(s)), ((MemoryBlock) this.memoryBuild.block).memoryCapacity);
                 } catch (NumberFormatException exception) {
                     end = ((MemoryBlock) this.memoryBuild.block).memoryCapacity;
                 }
-            }).minWidth(50).grow().pad(0, 5, 0, 5);
+            }).minWidth(0).grow().pad(0, 5, 0, 5);
             t.field(String.valueOf(step), digitsOnly, s -> {
                 try {
                     step = Integer.parseInt(s);
                 } catch (NumberFormatException exception) {
                     step = 1;
                 }
-            }).minWidth(50).grow().pad(0, 5, 0, 5);
+            }).minWidth(0).grow().pad(0, 5, 0, 5);
             t.field(String.valueOf(col), digitsOnly, s -> {
                 try {
                     col = Math.max(Integer.parseInt(s), 1);
                 } catch (NumberFormatException exception) {
                     col = 8;
                 }
-            }).minWidth(50).grow().pad(0, 5, 0, 5);
+            }).minWidth(0).grow().pad(0, 5, 0, 5);
             t.button(Icon.refresh, Styles.emptyi, this::init).size(50);
             t.button(Icon.edit, Styles.emptyi, () -> {
                 if (editMode) {
@@ -84,16 +84,17 @@ public class MemoryMonitor extends Monitor {
                     } catch (NumberFormatException exception) {
                         memory[index] = 0;
                     }
-                }).minWidth(60).grow().pad(0, 5, 0, 5);
+                }).minWidth(0).grow().pad(0, 5, 0, 5);
                 if (i % col == col - 1) p.row();
             }
-        }).fill().update(p -> {
+        }).grow().update(p -> {
             Element e = Core.scene.hit(Core.input.mouseX(), Core.input.mouseY(), true);
             if (e != null && e.isDescendantOf(p)) p.requestScroll();
             else if (p.hasScroll()) Core.scene.setScrollFocus(null);
         }).with(p -> {
             p.setupFadeScrollBars(0.5f, 0.25f);
             p.setFadeScrollBars(true);
+            p.setScrollingDisabled(true,false);
         })).grow();
         else monitorTable.table(t -> t.pane(p -> {
             for (int i = start; i < end / step; i ++) {
@@ -112,6 +113,7 @@ public class MemoryMonitor extends Monitor {
         }).with(p -> {
             p.setupFadeScrollBars(0.5f, 0.25f);
             p.setFadeScrollBars(true);
+            p.setScrollingDisabled(true,false);
         })).grow();
     }
 }
