@@ -20,8 +20,10 @@ import java.util.ArrayList;
 
 public class LogicMonitor extends Monitor {
     private final LogicBlock.LogicBuild logicBuild;
+
     private class VarTable extends Table {
         public LExecutor.Var var;
+
         private VarTable(LExecutor.Var var, String varName) {
             super();
             this.var = var;
@@ -31,9 +33,11 @@ public class LogicMonitor extends Monitor {
             }).minHeight(35).growX();
         }
     }
+
     private final ArrayList<LExecutor.Var> constants;
     private final ArrayList<LExecutor.Var> links;
     private final ArrayList<VarTable> varTables;
+
     public LogicMonitor(String text, LogicBlock.LogicBuild logicBuild, Vec2 pos) {
         super(text, logicBuild, pos);
         this.logicBuild = logicBuild;

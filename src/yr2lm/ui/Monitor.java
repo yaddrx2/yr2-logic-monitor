@@ -8,8 +8,9 @@ import arc.scene.ui.layout.Table;
 import mindustry.gen.Building;
 import mindustry.graphics.Drawf;
 
-public class Monitor extends Yrailiuxa2{
+public class Monitor extends Yrailiuxa2 {
     protected final Table monitorTable;
+
     public Monitor(String text, Building building, Vec2 pos) {
         super(text);
         this.monitorTable = new Table();
@@ -24,5 +25,6 @@ public class Monitor extends Yrailiuxa2{
         });
     }
 
-    public void init() {}
+    public void init() {
+    }
 }

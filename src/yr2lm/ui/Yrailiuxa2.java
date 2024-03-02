@@ -21,6 +21,7 @@ public class Yrailiuxa2 extends Table {
     protected final Vec2 pos = new Vec2(), size = new Vec2(), bias = new Vec2();
     protected final Vec2 minSize = new Vec2();
     public boolean hidden = false;
+
     public Yrailiuxa2(String text) {
         name = text;
         setSize(minSize.x, minSize.y);
@@ -43,16 +44,18 @@ public class Yrailiuxa2 extends Table {
             setSize(size.x, size.y);
         });
     }
+
     private void headTableInit(String text) {
         headTable.touchable = Touchable.enabled;
-        headTable.addListener(new InputListener(){
+        headTable.addListener(new InputListener() {
             @Override
-            public boolean touchDown(InputEvent event, float xDown, float yDown, int pointer, KeyCode button){
+            public boolean touchDown(InputEvent event, float xDown, float yDown, int pointer, KeyCode button) {
                 bias.set(xDown, yDown);
                 return true;
             }
+
             @Override
-            public void touchDragged(InputEvent event, float xDragged, float yDragged, int pointer){
+            public void touchDragged(InputEvent event, float xDragged, float yDragged, int pointer) {
                 pos.add(xDragged - bias.x, yDragged - bias.y);
             }
         });
@@ -60,35 +63,40 @@ public class Yrailiuxa2 extends Table {
         title.setAlignment(Align.left);
         headTable.add(title).pad(0, 10, 0, 10).height(30).growX();
     }
+
     private void sizeTableInit() {
         sideTableInit();
         bottomTableInit();
         cornerTableInit();
     }
+
     private void sideTableInit() {
         sideTable.touchable = Touchable.enabled;
-        sideTable.addListener(new InputListener(){
+        sideTable.addListener(new InputListener() {
             @Override
-            public boolean touchDown(InputEvent event, float xDown, float yDown, int pointer, KeyCode button){
+            public boolean touchDown(InputEvent event, float xDown, float yDown, int pointer, KeyCode button) {
                 bias.x = xDown;
                 return true;
             }
+
             @Override
-            public void touchDragged(InputEvent event, float xDragged, float yDragged, int pointer){
+            public void touchDragged(InputEvent event, float xDragged, float yDragged, int pointer) {
                 size.x = Math.max(minSize.x, size.x + xDragged - bias.x);
             }
         });
     }
+
     private void bottomTableInit() {
         bottomTable.touchable = Touchable.enabled;
-        bottomTable.addListener(new InputListener(){
+        bottomTable.addListener(new InputListener() {
             @Override
-            public boolean touchDown(InputEvent event, float xDown, float yDown, int pointer, KeyCode button){
+            public boolean touchDown(InputEvent event, float xDown, float yDown, int pointer, KeyCode button) {
                 bias.y = yDown;
                 return true;
             }
+
             @Override
-            public void touchDragged(InputEvent event, float xDragged, float yDragged, int pointer){
+            public void touchDragged(InputEvent event, float xDragged, float yDragged, int pointer) {
                 if (minSize.y < size.y - yDragged + bias.y) {
                     size.y = size.y - yDragged + bias.y;
                     pos.y += yDragged - bias.y;
@@ -99,16 +107,18 @@ public class Yrailiuxa2 extends Table {
             }
         });
     }
+
     private void cornerTableInit() {
         cornerTable.touchable = Touchable.enabled;
-        cornerTable.addListener(new InputListener(){
+        cornerTable.addListener(new InputListener() {
             @Override
-            public boolean touchDown(InputEvent event, float xDown, float yDown, int pointer, KeyCode button){
+            public boolean touchDown(InputEvent event, float xDown, float yDown, int pointer, KeyCode button) {
                 bias.set(xDown, yDown);
                 return true;
             }
+
             @Override
-            public void touchDragged(InputEvent event, float xDragged, float yDragged, int pointer){
+            public void touchDragged(InputEvent event, float xDragged, float yDragged, int pointer) {
                 size.x = Math.max(minSize.x, size.x + xDragged - bias.x);
                 if (minSize.y < size.y - yDragged + bias.y) {
                     size.y = size.y - yDragged + bias.y;
@@ -120,6 +130,7 @@ public class Yrailiuxa2 extends Table {
             }
         });
     }
+
     public void addToScene() {
         Core.scene.root.addChild(this);
         visible(() -> Vars.state.isGame() && Vars.ui.hudfrag.shown && !hidden);

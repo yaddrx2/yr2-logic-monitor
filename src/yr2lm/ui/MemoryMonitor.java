@@ -18,6 +18,7 @@ public class MemoryMonitor extends Monitor {
     private int start, end, step, col;
     private boolean editMode;
     private double[] memory;
+
     public MemoryMonitor(String s, MemoryBlock.MemoryBuild memoryBuild, Vec2 pos) {
         super(s, memoryBuild, pos);
         this.memoryBuild = memoryBuild;
@@ -75,7 +76,7 @@ public class MemoryMonitor extends Monitor {
         }).height(40).grow();
         monitorTable.row();
         if (editMode) monitorTable.table(t -> t.pane(p -> {
-            for (int i = start; i < end / step; i ++) {
+            for (int i = start; i < end / step; i++) {
                 int index = i * step;
                 if (i % col == 0) p.labelWrap("#" + index).size(60, 40).pad(0, 10, 0, 5);
                 p.field(BigDecimal.valueOf(memoryBuild.memory[index]).stripTrailingZeros().toPlainString(), s -> {
@@ -94,10 +95,10 @@ public class MemoryMonitor extends Monitor {
         }).with(p -> {
             p.setupFadeScrollBars(0.5f, 0.25f);
             p.setFadeScrollBars(true);
-            p.setScrollingDisabled(true,false);
+            p.setScrollingDisabled(true, false);
         })).grow();
         else monitorTable.table(t -> t.pane(p -> {
-            for (int i = start; i < end / step; i ++) {
+            for (int i = start; i < end / step; i++) {
                 int index = i * step;
                 if (i % col == 0) p.labelWrap("#" + index).size(60, 35).pad(0, 10, 0, 5);
                 Label label = new Label(() -> BigDecimal.valueOf(memoryBuild.memory[index]).stripTrailingZeros().toPlainString());
@@ -113,7 +114,7 @@ public class MemoryMonitor extends Monitor {
         }).with(p -> {
             p.setupFadeScrollBars(0.5f, 0.25f);
             p.setFadeScrollBars(true);
-            p.setScrollingDisabled(true,false);
+            p.setScrollingDisabled(true, false);
         })).grow();
     }
 }
