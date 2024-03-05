@@ -4,6 +4,7 @@ import arc.Core;
 import arc.graphics.Color;
 import arc.math.geom.Vec2;
 import arc.scene.Element;
+import arc.scene.ui.TextButton;
 import arc.scene.ui.layout.Table;
 import arc.util.Align;
 import mindustry.gen.Building;
@@ -20,6 +21,9 @@ import java.util.ArrayList;
 
 public class LogicMonitor extends Monitor {
     private final LogicBlock.LogicBuild logicBuild;
+
+    private String varFilter;
+    private boolean filterCc, filterW;
 
     private class VarTable extends Table {
         public LExecutor.Var var;
@@ -44,6 +48,9 @@ public class LogicMonitor extends Monitor {
         constants = new ArrayList<>();
         links = new ArrayList<>();
         varTables = new ArrayList<>();
+        varFilter = "";
+        filterCc = false;
+        filterW = false;
         init();
     }
 
@@ -64,17 +71,36 @@ public class LogicMonitor extends Monitor {
             }).grow();
         }).height(40).grow();
         monitorTable.row();
+        monitorTable.table(t -> {
+            t.field(varFilter, s -> varFilter = s).minWidth(0).grow();
+            t.button(Icon.zoom, Styles.emptyi, this::init).grow();
+            TextButton buttonCc = new TextButton(filterCc ? "Cc" : "[grey]Cc", Styles.cleart);
+            buttonCc.clicked(() -> {
+                filterCc = !filterCc;
+                buttonCc.setText(filterCc ? "Cc" : "[grey]Cc");
+            });
+            t.add(buttonCc).grow();
+            TextButton buttonW = new TextButton(filterW ? "W" : "[grey]W", Styles.cleart);
+            buttonW.clicked(() -> {
+                filterW = !filterW;
+                buttonW.setText(filterW ? "W" : "[grey]W");
+            });
+            t.add(buttonW).grow();
+        }).height(40).grow();
+        monitorTable.row();
         monitorTable.table(t -> t.pane(p -> {
             for (LExecutor.Var var : logicBuild.executor.vars) {
                 if (!var.constant) {
-                    VarTable varTable = new VarTable(var, var.name);
-                    varTables.add(varTable);
-                    p.add(varTable).growX();
-                    p.row();
+                    if (checkVarName(var.name)) {
+                        VarTable varTable = new VarTable(var, var.name);
+                        varTables.add(varTable);
+                        p.add(varTable).growX();
+                        p.row();
+                    }
                 } else if (var.name.startsWith("@")) {
-                    constants.add(var);
+                    if (checkVarName(var.name)) constants.add(var);
                 } else if (!var.name.startsWith("___")) {
-                    links.add(var);
+                    if (checkVarName(var.name)) links.add(var);
                 }
             }
             for (LExecutor.Var var : constants) {
@@ -92,9 +118,8 @@ public class LogicMonitor extends Monitor {
             }
         }).grow().update(p -> {
             Element e = Core.scene.hit(Core.input.mouseX(), Core.input.mouseY(), true);
-            if (e != null && e.isDescendantOf(p)) p.requestScroll();
-            else if (p.hasScroll()) Core.scene.setScrollFocus(null);
-            if (e != null) {
+            if (e != null && e.isDescendantOf(p)) {
+                p.requestScroll();
                 for (VarTable varTable : varTables) {
                     if (e.isDescendantOf(varTable))
                         if (varTable.var.isobj && !(varTable.var.objval instanceof String))
@@ -108,7 +133,7 @@ public class LogicMonitor extends Monitor {
                                 Fonts.outline.draw(varTable.var.name, building.x, building.y - building.block.size * 4 - 4, Color.valueOf("00ffff"), 0.4f, false, Align.center);
                             }
                 }
-            }
+            } else if (p.hasScroll()) Core.scene.setScrollFocus(null);
         }).with(p -> {
             p.setupFadeScrollBars(0.5f, 0.25f);
             p.setFadeScrollBars(true);
@@ -125,5 +150,27 @@ public class LogicMonitor extends Monitor {
                 return building.block.name + '#' + building.id;
             } else return var.objval.toString();
         else return BigDecimal.valueOf(var.numval).stripTrailingZeros().toPlainString();
+    }
+
+    private boolean checkVarName(String name) {
+        int index = getIndex(name);
+        if (index < 0) return false;
+        if (filterW) {
+            boolean filter = true;
+            if (index > 0)
+                filter = !Character.isAlphabetic(name.charAt(index - 1));
+            if (index + varFilter.length() < name.length())
+                filter &= !Character.isAlphabetic(name.charAt(index + varFilter.length()));
+            return filter;
+        }
+        return true;
+    }
+
+    private int getIndex(String name) {
+        if (filterCc) {
+            return name.indexOf(varFilter);
+        } else {
+            return name.toUpperCase().indexOf(varFilter.toUpperCase());
+        }
     }
 }
