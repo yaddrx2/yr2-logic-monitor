@@ -28,7 +28,7 @@ public class LogicMonitor extends Monitor {
     private class VarTable extends Table {
         public LExecutor.Var var;
 
-        private VarTable(LExecutor.Var var, String varName) {
+        public VarTable(LExecutor.Var var, String varName) {
             super();
             this.var = var;
             table(t -> {
@@ -172,5 +172,10 @@ public class LogicMonitor extends Monitor {
         } else {
             return name.toUpperCase().indexOf(varFilter.toUpperCase());
         }
+    }
+
+    @Override
+    public LogicBlock.LogicBuild getBuilding() {
+        return logicBuild;
     }
 }

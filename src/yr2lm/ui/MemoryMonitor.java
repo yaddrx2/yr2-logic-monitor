@@ -117,4 +117,9 @@ public class MemoryMonitor extends Monitor {
             p.setScrollingDisabled(true, false);
         })).grow();
     }
+
+    @Override
+    public MemoryBlock.MemoryBuild getBuilding() {
+        return memoryBuild;
+    }
 }

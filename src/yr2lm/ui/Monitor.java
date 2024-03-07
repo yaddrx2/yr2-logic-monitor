@@ -27,4 +27,8 @@ public class Monitor extends Yrailiuxa2 {
 
     public void init() {
     }
+
+    public Building getBuilding() {
+        return null;
+    }
 }
