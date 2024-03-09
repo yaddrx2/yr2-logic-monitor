@@ -5,11 +5,12 @@ import arc.graphics.Color;
 import arc.scene.Element;
 import arc.scene.ui.ImageButton;
 import arc.scene.ui.layout.Table;
-import arc.util.Log;
+import arc.util.serialization.SerializationException;
 import mindustry.Vars;
 import mindustry.gen.Building;
 import mindustry.gen.Icon;
 import mindustry.graphics.Drawf;
+import mindustry.io.JsonIO;
 import mindustry.ui.Styles;
 import mindustry.world.blocks.logic.LogicBlock;
 import mindustry.world.blocks.logic.MemoryBlock;
@@ -21,7 +22,7 @@ public class Combination extends Yrailiuxa2 {
     private Table combinationTable;
     private final Table monitorsTable;
 
-    private boolean binding;
+    private boolean binding, copying, pasting;
 
     private class MonitorTable extends Table {
         public Building building;
@@ -74,22 +75,52 @@ public class Combination extends Yrailiuxa2 {
 
     private void combinationTableInit() {
         combinationTable = new Table(t -> {
-            t.table(tt -> tt.button("add", Styles.cleart, () -> binding = !binding).grow().update(b -> {
-                if (binding) {
-                    b.setText("choose building");
-                    int x = (int) (Core.input.mouseWorldX() / 8 + 0.5f);
-                    int y = (int) (Core.input.mouseWorldY() / 8 + 0.5f);
-                    Building selected = Vars.world.build(x, y);
-                    if (selected != null && molds.contains(selected.getClass())) {
-                        Drawf.select(selected.x, selected.y, selected.block.size * 4, Color.valueOf("00ffff"));
-                        if (Core.input.isTouched()) addToCombination(selected);
-                    }
-                    if (Core.input.isTouched()) {
+
+            t.table(tt -> {
+                tt.button("[grey]add", Styles.cleart, () -> binding = !binding).grow().update(b -> {
+                    if (binding) {
                         b.setText("add");
-                        binding = false;
+                        Building selected = getWorldBuild();
+                        if (selected != null && molds.contains(selected.getClass())) {
+                            Drawf.select(selected.x, selected.y, selected.block.size * 4, Color.valueOf("00ffff"));
+                            if (Core.input.isTouched()) addToCombination(selected);
+                        }
+                        if (Core.input.isTouched()) {
+                            b.setText("[grey]add");
+                            binding = false;
+                        }
                     }
-                }
-            })).growX().height(50);
+                }).grow();
+                tt.button("[grey]copy", Styles.cleart, () -> copying = !copying).grow().update(b -> {
+                    if (copying) {
+                        b.setText("copy");
+                        Building selected = getWorldBuild();
+                        if (selected != null && molds.contains(selected.getClass())) {
+                            Drawf.select(selected.x, selected.y, selected.block.size * 4, Color.valueOf("ffff00"));
+                            if (Core.input.isTouched()) copyConfig(selected);
+                        }
+                        if (Core.input.isTouched()) {
+                            b.setText("[grey]copy");
+                            copying = false;
+                        }
+                    }
+                }).grow();
+                tt.button("[grey]paste", Styles.cleart, () -> pasting = !pasting).grow().update(b -> {
+                    if (pasting) {
+                        b.setText("paste");
+                        Building selected = getWorldBuild();
+                        if (selected != null && molds.contains(selected.getClass())) {
+                            Drawf.select(selected.x, selected.y, selected.block.size * 4, Color.valueOf("ffff00"));
+                            if (Core.input.isTouched()) pasteConfig(selected);
+                        }
+                        if (selected == null && Core.input.isTouched()) {
+                            b.setText("[grey]paste");
+                            pasting = false;
+                        }
+
+                    }
+                }).grow();
+            }).growX().height(50);
             t.row();
             t.add(monitorsTable).grow();
         });
@@ -123,8 +154,6 @@ public class Combination extends Yrailiuxa2 {
             if (e != null && e.isDescendantOf(p)) {
                 p.requestScroll();
                 for (MonitorTable monitorTable : monitorTables) {
-                    Log.info(e.isDescendantOf(monitorTable));
-                    Log.info(monitorTable.isDescendantOf(e));
                     if (e.isDescendantOf(monitorTable))
                         Drawf.select(monitorTable.building.x, monitorTable.building.y, monitorTable.building.block.size * 4, Color.valueOf("00ffff"));
                 }
@@ -133,6 +162,30 @@ public class Combination extends Yrailiuxa2 {
             p.setupFadeScrollBars(0.5f, 0.25f);
             p.setFadeScrollBars(true);
         })).grow();
+
+    }
+
+    private Building getWorldBuild() {
+        int x = (int) (Core.input.mouseWorldX() / 8 + 0.5f);
+        int y = (int) (Core.input.mouseWorldY() / 8 + 0.5f);
+        return Vars.world.build(x, y);
+    }
+
+    private void copyConfig(Building building) {
+        if (building instanceof LogicBlock.LogicBuild logicBuild)
+            Core.app.setClipboardText(logicBuild.code);
+        if (building instanceof MemoryBlock.MemoryBuild memoryBuild)
+            Core.app.setClipboardText(JsonIO.write(memoryBuild.memory));
+    }
+
+    private void pasteConfig(Building building) {
+        try {
+            if (building instanceof LogicBlock.LogicBuild logicBuild)
+                logicBuild.updateCode(Core.app.getClipboardText().replace("\r\n", "\n"));
+            if (building instanceof MemoryBlock.MemoryBuild memoryBuild)
+                memoryBuild.memory = JsonIO.read(memoryBuild.memory.getClass(), Core.app.getClipboardText());
+        } catch (SerializationException ignored) {
+        }
 
     }
 }

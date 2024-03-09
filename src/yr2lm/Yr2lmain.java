@@ -3,7 +3,7 @@ package yr2lm;
 import arc.Events;
 import arc.util.Time;
 import mindustry.game.EventType;
-import mindustry.mod.*;
+import mindustry.mod.Mod;
 import yr2lm.ui.Combination;
 
 
