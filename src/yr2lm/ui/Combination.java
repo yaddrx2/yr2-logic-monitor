@@ -182,8 +182,10 @@ public class Combination extends Yrailiuxa2 {
         try {
             if (building instanceof LogicBlock.LogicBuild logicBuild)
                 logicBuild.updateCode(Core.app.getClipboardText().replace("\r\n", "\n"));
-            if (building instanceof MemoryBlock.MemoryBuild memoryBuild)
-                memoryBuild.memory = JsonIO.read(memoryBuild.memory.getClass(), Core.app.getClipboardText());
+            if (building instanceof MemoryBlock.MemoryBuild memoryBuild) {
+                double[] memory = JsonIO.read(memoryBuild.memory.getClass(), Core.app.getClipboardText());
+                System.arraycopy(memory, 0, memoryBuild.memory, 0, Math.min(memoryBuild.memory.length, memory.length));
+            }
         } catch (SerializationException ignored) {
         }
 
