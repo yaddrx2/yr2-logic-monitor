@@ -13,19 +13,28 @@ import mindustry.Vars;
 import mindustry.ui.Styles;
 
 public class Yrailiuxa2 extends Table {
-    private final Table headTable = new Table();
-    private final Table sideTable = new Table();
-    private final Table bottomTable = new Table();
-    private final Table cornerTable = new Table();
-    protected final Table mainTable = new Table();
-    protected final Vec2 pos = new Vec2(), size = new Vec2(), bias = new Vec2();
-    protected final Vec2 minSize = new Vec2();
+    private final Table headTable;
+    private final Table sideTable;
+    private final Table bottomTable;
+    private final Table cornerTable;
+    protected final Table mainTable;
+    protected final Vec2 pos, size, bias;
+    protected final Vec2 minSize;
     public boolean hidden = false;
 
     public Yrailiuxa2(String text) {
         name = text;
-        setSize(minSize.x, minSize.y);
-        background(Styles.black3).top();
+        headTable = new Table();
+        sideTable = new Table();
+        bottomTable = new Table();
+        cornerTable = new Table();
+        mainTable = new Table();
+        pos = new Vec2();
+        size = new Vec2();
+        bias = new Vec2();
+        minSize = new Vec2();
+        background(Styles.black3);
+
         headTableInit(text);
         sizeTableInit();
         add(headTable).growX();
@@ -33,7 +42,7 @@ public class Yrailiuxa2 extends Table {
         table(t -> {
             t.add(mainTable).top().growX();
             t.add(sideTable).width(30).growY();
-        }).minWidth(minSize.x).grow();
+        }).grow();
         row();
         table(t -> {
             t.add(bottomTable).height(30).growX();

@@ -15,6 +15,7 @@ import mindustry.ui.Styles;
 import mindustry.world.blocks.logic.LogicBlock;
 import mindustry.world.blocks.logic.MemoryBlock;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 
 public class Combination extends Yrailiuxa2 {
@@ -129,9 +130,13 @@ public class Combination extends Yrailiuxa2 {
     private void addToCombination(Building building) {
         Monitor monitor = null;
         if (building instanceof LogicBlock.LogicBuild logicBuild) {
-            monitor = new LogicMonitor(building.block.name + "(" + building.x / 8 + ", " + building.y / 8 + ")", logicBuild, Core.input.mouse());
+            String x = BigDecimal.valueOf(logicBuild.x / 8).stripTrailingZeros().toPlainString();
+            String y = BigDecimal.valueOf(logicBuild.y / 8).stripTrailingZeros().toPlainString();
+            monitor = new LogicMonitor(logicBuild.block.name + "(" + x + ", " + y + ")", logicBuild, Core.input.mouse());
         } else if (building instanceof MemoryBlock.MemoryBuild memoryBuild) {
-            monitor = new MemoryMonitor(building.block.name + "(" + building.x / 8 + ", " + building.y / 8 + ")", memoryBuild, Core.input.mouse());
+            String x = BigDecimal.valueOf(memoryBuild.x / 8).stripTrailingZeros().toPlainString();
+            String y = BigDecimal.valueOf(memoryBuild.y / 8).stripTrailingZeros().toPlainString();
+            monitor = new MemoryMonitor(memoryBuild.block.name + "(" + x + ", " + y + ")", memoryBuild, Core.input.mouse());
         }
         assert monitor != null;
         monitor.addToScene();
