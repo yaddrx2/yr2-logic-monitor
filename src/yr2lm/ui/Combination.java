@@ -84,7 +84,10 @@ public class Combination extends Yrailiuxa2 {
                         Building selected = getWorldBuild();
                         if (selected != null && molds.contains(selected.getClass())) {
                             Drawf.select(selected.x, selected.y, selected.block.size * 4, Color.valueOf("00ffff"));
-                            if (Core.input.isTouched()) addToCombination(selected);
+                            if (Core.input.isTouched()) {
+                                addToCombination(selected);
+                                selected.deselect();
+                            }
                         }
                         if (Core.input.isTouched()) {
                             b.setText("[grey]add");
@@ -98,7 +101,10 @@ public class Combination extends Yrailiuxa2 {
                         Building selected = getWorldBuild();
                         if (selected != null && molds.contains(selected.getClass())) {
                             Drawf.select(selected.x, selected.y, selected.block.size * 4, Color.valueOf("ffff00"));
-                            if (Core.input.isTouched()) copyConfig(selected);
+                            if (Core.input.isTouched()) {
+                                copyConfig(selected);
+                                selected.deselect();
+                            }
                         }
                         if (Core.input.isTouched()) {
                             b.setText("[grey]copy");
@@ -112,7 +118,10 @@ public class Combination extends Yrailiuxa2 {
                         Building selected = getWorldBuild();
                         if (selected != null && molds.contains(selected.getClass())) {
                             Drawf.select(selected.x, selected.y, selected.block.size * 4, Color.valueOf("ffff00"));
-                            if (Core.input.isTouched()) pasteConfig(selected);
+                            if (Core.input.isTouched()) {
+                                pasteConfig(selected);
+                                selected.deselect();
+                            }
                         }
                         if (selected == null && Core.input.isTouched()) {
                             b.setText("[grey]paste");
