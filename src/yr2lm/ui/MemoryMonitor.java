@@ -15,18 +15,14 @@ import static arc.scene.ui.TextField.TextFieldFilter.digitsOnly;
 
 public class MemoryMonitor extends Monitor {
     private final MemoryBlock.MemoryBuild memoryBuild;
-    private int start, end, step, col;
-    private boolean editMode;
+    private int start = 0, end, step = 1, col = 8;
+    private boolean editMode = false;
     private double[] memory;
 
     public MemoryMonitor(String s, MemoryBlock.MemoryBuild memoryBuild, Vec2 pos) {
         super(s, memoryBuild, pos);
         this.memoryBuild = memoryBuild;
-        start = 0;
         end = ((MemoryBlock) this.memoryBuild.block).memoryCapacity;
-        step = 1;
-        col = 8;
-        editMode = false;
         init();
     }
 

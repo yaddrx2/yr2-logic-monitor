@@ -23,7 +23,7 @@ public class Combination extends Yrailiuxa2 {
     private Table combinationTable;
     private final Table monitorsTable;
 
-    private boolean binding, copying, pasting;
+    private boolean binding = false, copying = false, pasting = false;
 
     private class MonitorTable extends Table {
         public Building building;
@@ -76,7 +76,6 @@ public class Combination extends Yrailiuxa2 {
 
     private void combinationTableInit() {
         combinationTable = new Table(t -> {
-
             t.table(tt -> {
                 tt.button("[grey]add", Styles.cleart, () -> binding = !binding).grow().update(b -> {
                     if (binding) {

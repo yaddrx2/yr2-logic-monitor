@@ -22,9 +22,9 @@ import java.util.ArrayList;
 public class LogicMonitor extends Monitor {
     private final LogicBlock.LogicBuild logicBuild;
 
-    private String varFilter;
-    private boolean filterCc, filterW;
-    private boolean showVarPage, showEditPage;
+    private String varFilter = "";
+    private boolean filterCc = false, filterW = false;
+    private boolean showVarPage = true, showEditPage = false;
     private final Table varTools, varPage, editTools, editPage;
 
     private class VarTable extends Table {
@@ -34,8 +34,8 @@ public class LogicMonitor extends Monitor {
             super();
             this.var = var;
             table(t -> {
-                t.table(ttt -> ttt.labelWrap(varName).grow()).grow().pad(0, 10, 0, 5);
-                t.table(ttt -> ttt.labelWrap(() -> formatVarText(this.var)).grow()).grow().pad(0, 5, 0, 10);
+                t.table(tt -> tt.labelWrap(varName).grow()).grow().pad(0, 10, 0, 5);
+                t.table(tt -> tt.labelWrap(() -> formatVarText(this.var)).grow()).grow().pad(0, 5, 0, 10);
             }).minHeight(35).growX();
         }
     }
@@ -54,11 +54,6 @@ public class LogicMonitor extends Monitor {
         constants = new ArrayList<>();
         links = new ArrayList<>();
         varTables = new ArrayList<>();
-        varFilter = "";
-        filterCc = false;
-        filterW = false;
-        showVarPage = true;
-        showEditPage = false;
         varToolsBuild();
         varPageBuild();
         editToolsBuild();
@@ -69,6 +64,7 @@ public class LogicMonitor extends Monitor {
     @Override
     public void init() {
         monitorTable.clear();
+        monitorTable.defaults().uniform();
         if (showVarPage) monitorTable.add(varPage).grow();
         if (showEditPage) monitorTable.add(editPage).grow();
     }
@@ -91,6 +87,7 @@ public class LogicMonitor extends Monitor {
         }).height(40).growX();
         varTools.row();
         varTools.table(t -> {
+            t.defaults().uniform();
             t.field(varFilter, s -> varFilter = s).minWidth(0).padLeft(10).grow();
             t.button(Icon.zoom, Styles.emptyi, this::varPageBuild).grow();
             TextButton buttonCc = new TextButton(filterCc ? "Cc" : "[grey]Cc", Styles.cleart);
@@ -184,8 +181,6 @@ public class LogicMonitor extends Monitor {
         editPage.clear();
         editPage.top();
         editPage.add(editTools).growX();
-        editPage.row();
-        editPage.field(varFilter, s -> varFilter = s).minWidth(0).padLeft(10).grow();
     }
 
     private String formatVarText(LExecutor.Var var) {
