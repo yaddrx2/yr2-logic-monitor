@@ -121,7 +121,7 @@ public class Combination extends Yrailiuxa2 {
 
                     }
                 }).grow();
-            }).growX().height(50);
+            }).height(50).growX();
             t.row();
             t.add(monitorsTable).grow();
         });
@@ -148,6 +148,7 @@ public class Combination extends Yrailiuxa2 {
         monitorTables.clear();
         monitorsTable.clear();
         monitorsTable.table(t -> t.pane(p -> {
+            p.top();
             for (Monitor monitor : monitors) {
                 MonitorTable monitorTable = new MonitorTable(monitor);
                 monitorTables.add(monitorTable);

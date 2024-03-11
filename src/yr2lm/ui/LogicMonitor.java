@@ -25,7 +25,7 @@ public class LogicMonitor extends Monitor {
     private String varFilter;
     private boolean filterCc, filterW;
     private boolean showVarPage, showEditPage;
-    private final Table toolsPage, varPage, editPage;
+    private final Table varTools, varPage, editTools, editPage;
 
     private class VarTable extends Table {
         public LExecutor.Var var;
@@ -34,8 +34,8 @@ public class LogicMonitor extends Monitor {
             super();
             this.var = var;
             table(t -> {
-                t.table(ttt -> ttt.labelWrap(varName).minWidth(150).grow()).grow().pad(0, 10, 0, 5);
-                t.table(ttt -> ttt.labelWrap(() -> formatVarText(this.var)).minWidth(200).grow()).grow().pad(0, 5, 0, 10);
+                t.table(ttt -> ttt.labelWrap(varName).grow()).grow().pad(0, 10, 0, 5);
+                t.table(ttt -> ttt.labelWrap(() -> formatVarText(this.var)).grow()).grow().pad(0, 5, 0, 10);
             }).minHeight(35).growX();
         }
     }
@@ -47,8 +47,9 @@ public class LogicMonitor extends Monitor {
     public LogicMonitor(String text, LogicBlock.LogicBuild logicBuild, Vec2 pos) {
         super(text, logicBuild, pos);
         this.logicBuild = logicBuild;
-        toolsPage = new Table();
+        varTools = new Table();
         varPage = new Table();
+        editTools = new Table();
         editPage = new Table();
         constants = new ArrayList<>();
         links = new ArrayList<>();
@@ -58,8 +59,9 @@ public class LogicMonitor extends Monitor {
         filterW = false;
         showVarPage = true;
         showEditPage = false;
-        toolsPageBuild();
+        varToolsBuild();
         varPageBuild();
+        editToolsBuild();
         editPageBuild();
         init();
     }
@@ -67,16 +69,12 @@ public class LogicMonitor extends Monitor {
     @Override
     public void init() {
         monitorTable.clear();
-        monitorTable.add(toolsPage).growX();
-        monitorTable.row();
-        monitorTable.table(t -> {
-            if (showVarPage) t.add(varPage).grow();
-            if (showEditPage) t.add(editPage).grow();
-        }).grow();
+        if (showVarPage) monitorTable.add(varPage).grow();
+        if (showEditPage) monitorTable.add(editPage).grow();
     }
 
-    private void toolsPageBuild() {
-        toolsPage.table(t -> {
+    private void varToolsBuild() {
+        varTools.table(t -> {
             t.button(Icon.rotate, Styles.emptyi, () -> {
                 if (logicBuild.executor.vars.length == 0) return;
                 logicBuild.executor.vars[0].numval = 0;
@@ -86,22 +84,14 @@ public class LogicMonitor extends Monitor {
                 varPageBuild();
             }).grow();
             t.button(Icon.edit, Styles.emptyi, () -> {
-                if(showVarPage && !showEditPage) {
-                    showEditPage = true;
-                    init();
-                } else if(showVarPage) {
-                    showVarPage = false;
-                    init();
-                } else if (showEditPage) {
-                    showVarPage = true;
-                    showEditPage = false;
-                    init();
-                }
+                if (showEditPage) showVarPage = false;
+                else showEditPage = true;
+                init();
             }).grow();
-        }).height(40).grow();
-        toolsPage.row();
-        toolsPage.table(t -> {
-            t.field(varFilter, s -> varFilter = s).minWidth(0).grow();
+        }).height(40).growX();
+        varTools.row();
+        varTools.table(t -> {
+            t.field(varFilter, s -> varFilter = s).minWidth(0).padLeft(10).grow();
             t.button(Icon.zoom, Styles.emptyi, this::varPageBuild).grow();
             TextButton buttonCc = new TextButton(filterCc ? "Cc" : "[grey]Cc", Styles.cleart);
             buttonCc.clicked(() -> {
@@ -115,15 +105,19 @@ public class LogicMonitor extends Monitor {
                 buttonW.setText(filterW ? "W" : "[grey]W");
             });
             t.add(buttonW).grow();
-        }).height(40).grow();
+        }).height(40).growX();
     }
 
     private void varPageBuild() {
         varPage.clear();
+        varPage.top();
+        varPage.add(varTools).growX();
+        varPage.row();
         constants.clear();
         links.clear();
         varTables.clear();
         varPage.pane(p -> {
+            p.top();
             for (LExecutor.Var var : logicBuild.executor.vars) {
                 if (!var.constant) {
                     if (checkVarName(var.name)) {
@@ -175,8 +169,23 @@ public class LogicMonitor extends Monitor {
         });
     }
 
-    private void editPageBuild() {
+    private void editToolsBuild() {
+        editTools.table(t -> {
+            t.button(Icon.edit, Styles.emptyi, () -> {
+                if (showVarPage) showEditPage = false;
+                else showVarPage = true;
+                init();
+            }).grow();
+            t.row();
+        }).height(40).growX();
+    }
 
+    private void editPageBuild() {
+        editPage.clear();
+        editPage.top();
+        editPage.add(editTools).growX();
+        editPage.row();
+        editPage.field(varFilter, s -> varFilter = s).minWidth(0).padLeft(10).grow();
     }
 
     private String formatVarText(LExecutor.Var var) {

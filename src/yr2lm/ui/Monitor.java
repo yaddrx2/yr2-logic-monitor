@@ -17,7 +17,7 @@ public class Monitor extends Yrailiuxa2 {
         this.pos.set(pos.sub(0, 300));
         size.set(400, 300);
         minSize.set(400, 300);
-        mainTable.add(monitorTable).grow().left();
+        mainTable.add(monitorTable).grow();
         mainTable.update(() -> {
             Element e = Core.scene.hit(Core.input.mouseX(), Core.input.mouseY(), true);
             if (e != null && e.isDescendantOf(mainTable))
