@@ -24,6 +24,8 @@ public class LogicMonitor extends Monitor {
 
     private String varFilter;
     private boolean filterCc, filterW;
+    private boolean showVarPage, showEditPage;
+    private final Table toolsPage, varPage, editPage;
 
     private class VarTable extends Table {
         public LExecutor.Var var;
@@ -45,35 +47,62 @@ public class LogicMonitor extends Monitor {
     public LogicMonitor(String text, LogicBlock.LogicBuild logicBuild, Vec2 pos) {
         super(text, logicBuild, pos);
         this.logicBuild = logicBuild;
+        toolsPage = new Table();
+        varPage = new Table();
+        editPage = new Table();
         constants = new ArrayList<>();
         links = new ArrayList<>();
         varTables = new ArrayList<>();
         varFilter = "";
         filterCc = false;
         filterW = false;
+        showVarPage = true;
+        showEditPage = false;
+        toolsPageBuild();
+        varPageBuild();
+        editPageBuild();
         init();
     }
 
     @Override
     public void init() {
         monitorTable.clear();
-        constants.clear();
-        links.clear();
-        varTables.clear();
+        monitorTable.add(toolsPage).growX();
+        monitorTable.row();
         monitorTable.table(t -> {
+            if (showVarPage) t.add(varPage).grow();
+            if (showEditPage) t.add(editPage).grow();
+        }).grow();
+    }
+
+    private void toolsPageBuild() {
+        toolsPage.table(t -> {
             t.button(Icon.rotate, Styles.emptyi, () -> {
                 if (logicBuild.executor.vars.length == 0) return;
                 logicBuild.executor.vars[0].numval = 0;
             }).grow();
             t.button(Icon.trash, Styles.emptyi, () -> {
                 logicBuild.updateCode(logicBuild.code);
-                init();
+                varPageBuild();
+            }).grow();
+            t.button(Icon.edit, Styles.emptyi, () -> {
+                if(showVarPage && !showEditPage) {
+                    showEditPage = true;
+                    init();
+                } else if(showVarPage) {
+                    showVarPage = false;
+                    init();
+                } else if (showEditPage) {
+                    showVarPage = true;
+                    showEditPage = false;
+                    init();
+                }
             }).grow();
         }).height(40).grow();
-        monitorTable.row();
-        monitorTable.table(t -> {
+        toolsPage.row();
+        toolsPage.table(t -> {
             t.field(varFilter, s -> varFilter = s).minWidth(0).grow();
-            t.button(Icon.zoom, Styles.emptyi, this::init).grow();
+            t.button(Icon.zoom, Styles.emptyi, this::varPageBuild).grow();
             TextButton buttonCc = new TextButton(filterCc ? "Cc" : "[grey]Cc", Styles.cleart);
             buttonCc.clicked(() -> {
                 filterCc = !filterCc;
@@ -87,8 +116,14 @@ public class LogicMonitor extends Monitor {
             });
             t.add(buttonW).grow();
         }).height(40).grow();
-        monitorTable.row();
-        monitorTable.table(t -> t.pane(p -> {
+    }
+
+    private void varPageBuild() {
+        varPage.clear();
+        constants.clear();
+        links.clear();
+        varTables.clear();
+        varPage.pane(p -> {
             for (LExecutor.Var var : logicBuild.executor.vars) {
                 if (!var.constant) {
                     if (checkVarName(var.name)) {
@@ -137,7 +172,11 @@ public class LogicMonitor extends Monitor {
         }).with(p -> {
             p.setupFadeScrollBars(0.5f, 0.25f);
             p.setFadeScrollBars(true);
-        })).grow();
+        });
+    }
+
+    private void editPageBuild() {
+
     }
 
     private String formatVarText(LExecutor.Var var) {
