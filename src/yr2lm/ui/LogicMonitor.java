@@ -183,18 +183,18 @@ public class LogicMonitor extends Monitor {
             t.defaults().uniform();
             t.field(varFilter, s -> varFilter = s).minWidth(0).padLeft(10).grow();
             t.button(Icon.zoom, Styles.emptyi, this::varPageBuild).grow();
-            TextButton buttonCc = new TextButton(filterCc ? "Cc" : "[grey]Cc", Styles.cleart);
+            TextButton buttonCc = t.button(filterCc ? "Cc" : "[grey]Cc", Styles.cleart, () -> {
+            }).grow().get();
             buttonCc.clicked(() -> {
                 filterCc = !filterCc;
                 buttonCc.setText(filterCc ? "Cc" : "[grey]Cc");
             });
-            t.add(buttonCc).grow();
-            TextButton buttonW = new TextButton(filterW ? "W" : "[grey]W", Styles.cleart);
+            TextButton buttonW = t.button(filterW ? "W" : "[grey]W", Styles.cleart, () -> {
+            }).grow().get();
             buttonW.clicked(() -> {
                 filterW = !filterW;
                 buttonW.setText(filterW ? "W" : "[grey]W");
             });
-            t.add(buttonW).grow();
         }).height(40).growX();
     }
 

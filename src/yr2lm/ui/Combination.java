@@ -34,17 +34,14 @@ public class Combination extends Yrailiuxa2 {
             table(t -> {
                 t.table(tt -> tt.labelWrap(monitor.name).grow()).grow().pad(0, 10, 0, 5);
                 t.table(tt -> {
-                    ImageButton visibleButton = new ImageButton();
                     ImageButton.ImageButtonStyle style = new ImageButton.ImageButtonStyle(Styles.emptyi);
-                    style.imageUp = Icon.eyeSmall;
-                    visibleButton.setStyle(style);
-                    visibleButton.resizeImage(35);
+                    ImageButton visibleButton = tt.button(Icon.eyeSmall, Styles.emptyi, () -> {
+                    }).size(35).get();
                     visibleButton.clicked(() -> {
                         monitor.hidden = !monitor.hidden;
                         style.imageUp = monitor.hidden ? Icon.eyeOffSmall : Icon.eyeSmall;
                         visibleButton.setStyle(style);
                     });
-                    tt.add(visibleButton).size(35);
                     tt.button(Icon.refresh, Styles.emptyi, monitor::init).size(35);
                     tt.button(Icon.trash, Styles.emptyi, () -> {
                         monitors.remove(monitor);
