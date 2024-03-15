@@ -4,9 +4,12 @@ import arc.Core;
 import arc.graphics.Color;
 import arc.math.geom.Vec2;
 import arc.scene.Element;
+import arc.scene.ui.ImageButton;
+import arc.scene.ui.ScrollPane;
 import arc.scene.ui.TextButton;
 import arc.scene.ui.layout.Table;
 import arc.util.Align;
+import arc.util.Log;
 import mindustry.gen.Building;
 import mindustry.gen.Icon;
 import mindustry.gen.Unit;
@@ -25,7 +28,10 @@ public class LogicMonitor extends Monitor {
     private String varFilter = "";
     private boolean filterCc = false, filterW = false;
     private boolean showVarPage = true, showEditPage = false;
+    private boolean pause = false, forward = false, stop = false;
+    private int counter;
     private final Table varTools, varPage, editTools, editPage;
+    private ScrollPane editPanel;
 
     private class VarCell extends Table {
         public LExecutor.Var var;
@@ -49,18 +55,19 @@ public class LogicMonitor extends Monitor {
                 } else if (var.objval instanceof Building building) {
                     return building.block.name + '#' + building.id;
                 } else return var.objval.toString();
+            else if (Double.isNaN(var.numval)) return String.valueOf(counter);
             else return BigDecimal.valueOf(var.numval).stripTrailingZeros().toPlainString();
         }
     }
 
     private class CodeCell extends Table {
-        private final String line;
+        private final int line;
         public String code;
         private final String codeOrigin;
 
         private boolean edit;
 
-        public CodeCell(String line, String code, boolean edit) {
+        public CodeCell(int line, String code, boolean edit) {
             super();
             this.line = line;
             this.code = code;
@@ -73,7 +80,11 @@ public class LogicMonitor extends Monitor {
         private void codeCellBuild() {
             clear();
             table(t -> {
-                t.labelWrap(line).width(60).pad(0, 10, 0, 5);
+                t.label(() -> {
+                    if (pause ? counter == line : logicBuild.executor.vars[0].numval == line) return ">>";
+                    else return "";
+                }).width(30).padLeft(10);
+                t.labelWrap(line == -1 ? "+" : String.valueOf(line)).width(45).padRight(5);
                 if (edit) t.field(code, s -> code = s).minWidth(0).grow().pad(0, 5, 0, 5);
                 else t.labelWrap(code).grow().pad(0, 5, 0, 5);
                 t.button(Icon.pencilSmall, Styles.emptyi, () -> {
@@ -81,7 +92,7 @@ public class LogicMonitor extends Monitor {
                     codeCellBuild();
                 }).size(35).right();
                 t.button(Icon.addSmall, Styles.emptyi, () -> {
-                    codeCells.add(codeCells.indexOf(this) + 1, new CodeCell("+", "", true));
+                    codeCells.add(codeCells.indexOf(this) + 1, new CodeCell(-1, "", true));
                     rebuild();
                 }).size(35).right();
                 t.button(Icon.refreshSmall, Styles.emptyi, () -> {
@@ -154,9 +165,11 @@ public class LogicMonitor extends Monitor {
             t.button(Icon.rotate, Styles.emptyi, () -> {
                 if (logicBuild.executor.vars.length == 0) return;
                 logicBuild.executor.vars[0].numval = 0;
+                if (pause) logicPause();
             }).grow();
             t.button(Icon.trash, Styles.emptyi, () -> {
                 logicBuild.updateCode(logicBuild.code);
+                if (pause) logicPause();
                 varPageBuild();
             }).grow();
             t.button(Icon.edit, Styles.emptyi, () -> {
@@ -249,7 +262,41 @@ public class LogicMonitor extends Monitor {
                 else showVarPage = true;
                 init();
             }).grow();
-            t.row();
+        }).height(40).growX();
+        editTools.row();
+        editTools.table(t -> {
+            ImageButton.ImageButtonStyle style = new ImageButton.ImageButtonStyle(Styles.emptyi);
+            ImageButton pauseButton = t.button(Icon.pause, Styles.emptyi, () -> {
+            }).grow().get();
+            t.button(Icon.left, Styles.emptyi, () -> {
+                if (pause) forward = true;
+            }).grow();
+            pauseButton.clicked(() -> {
+                pause = !pause;
+                if (pause) {
+                    logicPause();
+                    style.imageUp = Icon.play;
+                } else {
+                    logicRerun();
+                    style.imageUp = Icon.pause;
+                }
+                pauseButton.setStyle(style);
+            });
+            pauseButton.update(() -> {
+                if (!pause) return;
+                if (stop && logicBuild.executor.vars[0].numval != counter) {
+                    Log.info(logicBuild.executor.vars[0].numval);
+                    Log.info(codeCells.size());
+                    if (logicBuild.executor.vars[0].numval == codeCells.size())
+                        logicBuild.executor.vars[0].numval = 0;
+                    forward = false;
+                    stop = false;
+                    logicPause();
+                } else if (forward) {
+                    stop = true;
+                    logicRerun();
+                }
+            });
         }).height(40).growX();
     }
 
@@ -259,11 +306,11 @@ public class LogicMonitor extends Monitor {
         editPage.add(editTools).growX();
         editPage.row();
         codeCells.clear();
-        editPage.pane(p -> {
+        editPanel = editPage.pane(p -> {
             p.top();
             String[] codeList = logicBuild.code.split("\n");
             for (int i = 0; i < codeList.length; i++) {
-                p.add(new CodeCell("#" + i, codeList[i], false)).growX();
+                p.add(new CodeCell(i, codeList[i], false)).growX();
                 p.row();
             }
         }).grow().update(p -> {
@@ -274,7 +321,7 @@ public class LogicMonitor extends Monitor {
             p.setupFadeScrollBars(0.5f, 0.25f);
             p.setFadeScrollBars(true);
             p.setScrollingDisabled(true, false);
-        });
+        }).get();
     }
 
     private boolean checkVarName(String name) {
@@ -297,6 +344,16 @@ public class LogicMonitor extends Monitor {
         StringBuilder builder = new StringBuilder();
         for (CodeCell codeCell : codeCells) builder.append(codeCell.code).append("\n");
         logicBuild.updateCode(builder.toString());
+    }
+
+    private void logicPause() {
+        counter = (int) logicBuild.executor.vars[0].numval;
+        logicBuild.executor.vars[0].numval = Double.NaN;
+        editPanel.setScrollPercentY(counter / (codeCells.size() - 1f));
+    }
+
+    private void logicRerun() {
+        logicBuild.executor.vars[0].numval = counter;
     }
 
     @Override

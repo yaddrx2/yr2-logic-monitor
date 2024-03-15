@@ -44,7 +44,7 @@ public class Combination extends Yrailiuxa2 {
                         style.imageUp = monitor.hidden ? Icon.eyeOffSmall : Icon.eyeSmall;
                         visibleButton.setStyle(style);
                     });
-                    tt.add(visibleButton);
+                    tt.add(visibleButton).size(35);
                     tt.button(Icon.refresh, Styles.emptyi, monitor::init).size(35);
                     tt.button(Icon.trash, Styles.emptyi, () -> {
                         monitors.remove(monitor);
