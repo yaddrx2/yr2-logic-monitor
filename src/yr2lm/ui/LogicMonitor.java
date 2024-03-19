@@ -9,7 +9,6 @@ import arc.scene.ui.ScrollPane;
 import arc.scene.ui.TextButton;
 import arc.scene.ui.layout.Table;
 import arc.util.Align;
-import arc.util.Log;
 import mindustry.gen.Building;
 import mindustry.gen.Icon;
 import mindustry.gen.Unit;
@@ -21,6 +20,7 @@ import mindustry.world.blocks.logic.LogicBlock;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashSet;
 
 public class LogicMonitor extends Monitor {
     private final LogicBlock.LogicBuild logicBuild;
@@ -28,7 +28,7 @@ public class LogicMonitor extends Monitor {
     private String varFilter = "";
     private boolean filterCc = false, filterW = false;
     private boolean showVarPage = true, showEditPage = false;
-    private boolean pause = false, forward = false, stop = false;
+    private boolean pause = false, forward = false, skip = false, stop = false;
     private int counter;
     private final Table varTools, varPage, editTools, editPage;
     private ScrollPane editPanel;
@@ -47,16 +47,17 @@ public class LogicMonitor extends Monitor {
         }
 
         private String formatVarText(LExecutor.Var var) {
-            if (var.isobj)
+            if (var.isobj) {
                 if (var.objval instanceof String) return '"' + var.objval.toString() + '"';
-                else if (var.objval == null) return "null";
-                else if (var.objval instanceof Unit unit) {
+                if (var.objval == null) return "null";
+                if (var.objval instanceof Unit unit)
                     return '[' + unit.type.name + '#' + unit.id + "]\n[" + BigDecimal.valueOf(unit.flag).stripTrailingZeros().toPlainString() + "]";
-                } else if (var.objval instanceof Building building) {
+                if (var.objval instanceof Building building)
                     return building.block.name + '#' + building.id;
-                } else return var.objval.toString();
-            else if (Double.isNaN(var.numval)) return String.valueOf(counter);
-            else return BigDecimal.valueOf(var.numval).stripTrailingZeros().toPlainString();
+                return var.objval.toString();
+            }
+            if (Double.isNaN(var.numval)) return String.valueOf(counter);
+            return BigDecimal.valueOf(var.numval).stripTrailingZeros().toPlainString();
         }
     }
 
@@ -81,10 +82,16 @@ public class LogicMonitor extends Monitor {
             clear();
             table(t -> {
                 t.label(() -> {
-                    if (pause ? counter == line : logicBuild.executor.vars[0].numval == line) return ">>";
-                    else return "";
-                }).width(30).padLeft(10);
-                t.labelWrap(line == -1 ? "+" : String.valueOf(line)).width(45).padRight(5);
+                    if (pause ? counter == line : logicBuild.executor.vars[0].numval == line) {
+                        if (breakpoints.contains(line)) return ">[red]>";
+                        return ">>";
+                    }
+                    if (breakpoints.contains(line)) return " [red]>";
+                    return "";
+                }).width(30).growY().padLeft(10).get().clicked(() -> {
+                    if (breakpoints.contains(line)) breakpoints.remove(line);
+                    else breakpoints.add(line);
+                });
                 if (edit) t.field(code, s -> code = s).minWidth(0).grow().pad(0, 5, 0, 5);
                 else t.labelWrap(code).grow().pad(0, 5, 0, 5);
                 t.button(Icon.pencilSmall, Styles.emptyi, () -> {
@@ -103,6 +110,7 @@ public class LogicMonitor extends Monitor {
                     codeCells.remove(this);
                     rebuild();
                 }).size(35).right();
+                t.labelWrap(line == -1 ? "+" : String.valueOf(line)).width(45);
             }).minHeight(35).growX();
         }
 
@@ -111,7 +119,7 @@ public class LogicMonitor extends Monitor {
             editPage.top();
             editPage.add(editTools).growX();
             editPage.row();
-            editPage.pane(p -> {
+            editPanel = editPage.pane(p -> {
                 p.top();
                 for (CodeCell codeCell : codeCells) {
                     p.add(codeCell).growX();
@@ -125,7 +133,7 @@ public class LogicMonitor extends Monitor {
                 p.setupFadeScrollBars(0.5f, 0.25f);
                 p.setFadeScrollBars(true);
                 p.setScrollingDisabled(true, false);
-            });
+            }).get();
         }
     }
 
@@ -133,6 +141,7 @@ public class LogicMonitor extends Monitor {
     private final ArrayList<LExecutor.Var> links;
     private final ArrayList<VarCell> varCells;
     private final ArrayList<CodeCell> codeCells;
+    private final HashSet<Integer> breakpoints;
 
     public LogicMonitor(String text, LogicBlock.LogicBuild logicBuild, Vec2 pos) {
         super(text, logicBuild, pos);
@@ -145,6 +154,7 @@ public class LogicMonitor extends Monitor {
         links = new ArrayList<>();
         varCells = new ArrayList<>();
         codeCells = new ArrayList<>();
+        breakpoints = new HashSet<>();
         varToolsBuild();
         varPageBuild();
         editToolsBuild();
@@ -271,6 +281,12 @@ public class LogicMonitor extends Monitor {
             t.button(Icon.left, Styles.emptyi, () -> {
                 if (pause) forward = true;
             }).grow();
+            t.button(Icon.undo, Styles.emptyi, () -> {
+                if (pause) {
+                    forward = true;
+                    if (!breakpoints.isEmpty()) skip = true;
+                }
+            }).grow();
             pauseButton.clicked(() -> {
                 pause = !pause;
                 if (pause) {
@@ -285,11 +301,15 @@ public class LogicMonitor extends Monitor {
             pauseButton.update(() -> {
                 if (!pause) return;
                 if (stop && logicBuild.executor.vars[0].numval != counter) {
-                    Log.info(logicBuild.executor.vars[0].numval);
-                    Log.info(codeCells.size());
                     if (logicBuild.executor.vars[0].numval == codeCells.size())
                         logicBuild.executor.vars[0].numval = 0;
+                    if (skip && !breakpoints.contains((int) logicBuild.executor.vars[0].numval)) {
+                        counter = (int) logicBuild.executor.vars[0].numval;
+                        editPanel.setScrollPercentY(counter / (codeCells.size() - 1f));
+                        return;
+                    }
                     forward = false;
+                    skip = false;
                     stop = false;
                     logicPause();
                 } else if (forward) {
@@ -306,6 +326,7 @@ public class LogicMonitor extends Monitor {
         editPage.add(editTools).growX();
         editPage.row();
         codeCells.clear();
+        breakpoints.clear();
         editPanel = editPage.pane(p -> {
             p.top();
             String[] codeList = logicBuild.code.split("\n");
