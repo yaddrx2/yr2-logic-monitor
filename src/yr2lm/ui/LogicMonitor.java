@@ -29,6 +29,7 @@ public class LogicMonitor extends Monitor {
     private String varFilter = "";
     private boolean filterCc = false, filterW = false;
     private boolean showVarPage = true, showEditPage = false;
+    private boolean draw = false;
     private boolean pause = false, forward = false, skip = false, stop = false;
     private int counter;
     private final Table varTools, varPage, editTools, editPage;
@@ -38,14 +39,27 @@ public class LogicMonitor extends Monitor {
     private class VarCell extends Table {
         public LExecutor.Var var;
 
-        public VarCell(LExecutor.Var var, String varName) {
+        public VarCell(LExecutor.Var varInit, String varName) {
             super();
-            this.var = var;
+            this.var = varInit;
             table(t -> {
                 t.table(tt -> tt.labelWrap(varName).grow()).grow().pad(0, 10, 0, 5);
                 t.table(tt -> tt.labelWrap(() -> formatVarText(this.var)).grow()).grow().pad(0, 5, 0, 10);
-            }).minHeight(35).growX();
-            varCells.add(this);
+            }).minHeight(35).growX().update(t -> {
+                Element e = Core.scene.hit(Core.input.mouseX(), Core.input.mouseY(), true);
+                if (draw || e != null && e.isDescendantOf(t)) {
+                    if (var.isobj && !(var.objval instanceof String))
+                        if (var.objval instanceof Unit unit) {
+                            Drawf.select(unit.x, unit.y, unit.type.hitSize, Color.valueOf("00ffff"));
+                            Drawf.line(Color.valueOf("00ffff"), logicBuild.x, logicBuild.y, unit.x, unit.y);
+                            Fonts.outline.draw(var.name, unit.x, unit.y - unit.type.hitSize - 4, Color.valueOf("00ffff"), 0.4f, false, Align.center);
+                        } else if (var.objval instanceof Building building) {
+                            Drawf.select(building.x, building.y, building.block.size * 4, Color.valueOf("00ffff"));
+                            Drawf.line(Color.valueOf("00ffff"), logicBuild.x, logicBuild.y, building.x, building.y);
+                            Fonts.outline.draw(var.name, building.x, building.y - building.block.size * 4 - 4, Color.valueOf("00ffff"), 0.4f, false, Align.center);
+                        }
+                }
+            });
         }
 
         private String formatVarText(LExecutor.Var var) {
@@ -143,9 +157,7 @@ public class LogicMonitor extends Monitor {
         }
     }
 
-    private final ArrayList<LExecutor.Var> constants;
-    private final ArrayList<LExecutor.Var> links;
-    private final ArrayList<VarCell> varCells;
+    private final ArrayList<LExecutor.Var> constants, links;
     private final ArrayList<CodeCell> codeCells;
     private final HashSet<Integer> breakpoints;
 
@@ -158,7 +170,6 @@ public class LogicMonitor extends Monitor {
         editPage = new Table();
         constants = new ArrayList<>();
         links = new ArrayList<>();
-        varCells = new ArrayList<>();
         codeCells = new ArrayList<>();
         breakpoints = new HashSet<>();
         varToolsBuild();
@@ -188,6 +199,14 @@ public class LogicMonitor extends Monitor {
                 if (pause) logicPause();
                 varPageBuild();
             }).grow();
+            ImageButton.ImageButtonStyle style = new ImageButton.ImageButtonStyle(Styles.emptyi);
+            ImageButton drawButton = t.button(Icon.eyeOffSmall, Styles.emptyi, () -> {
+            }).grow().get();
+            drawButton.clicked(() -> {
+                draw = !draw;
+                style.imageUp = draw ? Icon.eyeSmall : Icon.eyeOffSmall;
+                drawButton.setStyle(style);
+            });
             t.button(Icon.edit, Styles.emptyi, () -> {
                 if (showEditPage) showVarPage = false;
                 else showEditPage = true;
@@ -204,12 +223,14 @@ public class LogicMonitor extends Monitor {
             buttonCc.clicked(() -> {
                 filterCc = !filterCc;
                 buttonCc.setText(filterCc ? "Cc" : "[grey]Cc");
+                varPageBuild();
             });
             TextButton buttonW = t.button(filterW ? "W" : "[grey]W", Styles.cleart, () -> {
             }).grow().get();
             buttonW.clicked(() -> {
                 filterW = !filterW;
                 buttonW.setText(filterW ? "W" : "[grey]W");
+                varPageBuild();
             });
         }).height(40).growX();
     }
@@ -221,7 +242,6 @@ public class LogicMonitor extends Monitor {
         varPage.row();
         constants.clear();
         links.clear();
-        varCells.clear();
         varPage.pane(p -> {
             p.top();
             for (LExecutor.Var var : logicBuild.executor.vars) {
@@ -247,22 +267,8 @@ public class LogicMonitor extends Monitor {
             }
         }).grow().update(p -> {
             Element e = Core.scene.hit(Core.input.mouseX(), Core.input.mouseY(), true);
-            if (e != null && e.isDescendantOf(p)) {
-                p.requestScroll();
-                for (VarCell varCell : varCells) {
-                    if (e.isDescendantOf(varCell))
-                        if (varCell.var.isobj && !(varCell.var.objval instanceof String))
-                            if (varCell.var.objval instanceof Unit unit) {
-                                Drawf.select(unit.x, unit.y, unit.type.hitSize, Color.valueOf("00ffff"));
-                                Drawf.line(Color.valueOf("00ffff"), logicBuild.x, logicBuild.y, unit.x, unit.y);
-                                Fonts.outline.draw(varCell.var.name, unit.x, unit.y - unit.type.hitSize - 4, Color.valueOf("00ffff"), 0.4f, false, Align.center);
-                            } else if (varCell.var.objval instanceof Building building) {
-                                Drawf.select(building.x, building.y, building.block.size * 4, Color.valueOf("00ffff"));
-                                Drawf.line(Color.valueOf("00ffff"), logicBuild.x, logicBuild.y, building.x, building.y);
-                                Fonts.outline.draw(varCell.var.name, building.x, building.y - building.block.size * 4 - 4, Color.valueOf("00ffff"), 0.4f, false, Align.center);
-                            }
-                }
-            } else if (p.hasScroll()) Core.scene.setScrollFocus(null);
+            if (e != null && e.isDescendantOf(p)) p.requestScroll();
+            else if (p.hasScroll()) Core.scene.setScrollFocus(null);
         }).with(p -> {
             p.setupFadeScrollBars(0.5f, 0.25f);
             p.setFadeScrollBars(true);
