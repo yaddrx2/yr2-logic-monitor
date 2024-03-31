@@ -29,6 +29,7 @@ public class MemoryMonitor extends Monitor {
     @Override
     public void init() {
         monitorTable.clear();
+        monitorTable.top();
         monitorTable.table(t -> {
             t.field(String.valueOf(start), digitsOnly, s -> {
                 try {
@@ -69,9 +70,10 @@ public class MemoryMonitor extends Monitor {
                 }
                 init();
             }).size(50);
-        }).height(40).grow();
+        }).height(40).growX();
         monitorTable.row();
         if (editMode) monitorTable.table(t -> t.pane(p -> {
+            p.top();
             for (int i = start; i < end / step; i++) {
                 int index = i * step;
                 if (i % col == 0) p.labelWrap("#" + index).size(60, 40).pad(0, 10, 0, 5);
@@ -81,7 +83,7 @@ public class MemoryMonitor extends Monitor {
                     } catch (NumberFormatException exception) {
                         memory[index] = 0;
                     }
-                }).minWidth(0).grow().pad(0, 5, 0, 5);
+                }).minWidth(0).growX().pad(0, 5, 0, 5);
                 if (i % col == col - 1) p.row();
             }
         }).grow().update(p -> {
@@ -94,6 +96,7 @@ public class MemoryMonitor extends Monitor {
             p.setScrollingDisabled(true, false);
         })).grow();
         else monitorTable.table(t -> t.pane(p -> {
+            p.top();
             for (int i = start; i < end / step; i++) {
                 int index = i * step;
                 if (i % col == 0) p.labelWrap("#" + index).size(60, 35).pad(0, 10, 0, 5);

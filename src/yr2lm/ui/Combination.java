@@ -113,7 +113,7 @@ public class Combination extends Yrailiuxa2 {
                         b.setText("paste");
                         Building selected = getWorldBuild();
                         if (selected != null && molds.contains(selected.getClass())) {
-                            Drawf.select(selected.x, selected.y, selected.block.size * 4, Color.valueOf("ffff00"));
+                            Drawf.select(selected.x, selected.y, selected.block.size * 4, Color.valueOf("ff00ff"));
                             if (Core.input.isTouched()) {
                                 pasteConfig(selected);
                                 selected.deselect();

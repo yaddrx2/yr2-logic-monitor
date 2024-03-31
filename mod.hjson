@@ -2,10 +2,51 @@ displayName: "yr2-logic-monitor"
 name: "yr2-logic-monitor"
 author: "yaddrx2"
 main: "yr2lm.Yr2lmain"
-description: "
-
+description: "Logic Monitor
+    一个逻辑块辅助工具
+    yaddrx2旧作翻新，仅供学习交流使用
+    当前为内测版，暂未公开!
+    交流群: 615081546 Mindustry逻辑块游戏研究中心
+    当前版本: 1.0.1
+    doc:
+    1.主窗口: yr2lm
+      add: 绑定逻辑块与内存块
+      copy: 复制方块信息到剪切板
+      paste: 粘贴方块信息
+      方块列表: 光标悬浮查看方块位置
+        a.窗口显示/隐藏
+        b.窗口刷新
+        c.移除对应窗口
+    2.逻辑块:
+      变量表: 鼠标悬浮查看变量位置
+        a.将@counter置零
+        b.销毁变量，重新运行
+        c.变量位置指示器
+        d.切换: 变量表/编辑器
+        e.输入变量筛选词
+        f.区分大小写
+        g.单词
+      编辑器:
+        a.撤销未保存的更改
+        b.提交更改
+        c.切换: 变量表/编辑器
+        d.暂停
+        e.单步运行
+        f.运行到下一断点
+        逻辑码列表: 单击行首添加断点
+          a.编辑
+          b.添加新行
+          c.撤销单行变更
+          d.移除本行
+    3.内存块: 行首数字为本行首格下标
+      a.起始下标(包含)
+      b.末尾下标(不包含)
+      c.步长
+      d.每行显示个数
+      e.刷新
+      f.编辑
 "
-version: 1.0
+version: 1.0.1
 minGameVersion: 146
 java: true
 hidden: true
