@@ -98,7 +98,7 @@ public class LogicMonitor extends Monitor {
             clear();
             table(t -> {
                 t.label(() -> {
-                    if (pause ? counter == line : logicBuild.executor.vars[0].numval == line) {
+                    if (pause ? counter == line : logicBuild.executor.vars.length > 0 && logicBuild.executor.vars[0].numval == line) {
                         if (breakpoints.contains(line)) return ">[red]>";
                         return ">>";
                     }
@@ -346,6 +346,7 @@ public class LogicMonitor extends Monitor {
         editPanel = editPage.pane(p -> {
             p.top();
             String[] codeList = logicBuild.code.split("\n");
+            if (codeList.length == 0) codeList = new String[]{""};
             for (int i = 0; i < codeList.length; i++) {
                 p.add(new CodeCell(i, codeList[i], false)).growX();
                 p.row();
@@ -385,7 +386,7 @@ public class LogicMonitor extends Monitor {
     }
 
     private void logicPause() {
-        counter = (int) logicBuild.executor.vars[0].numval;
+        if (logicBuild.executor.vars.length > 0) counter = (int) logicBuild.executor.vars[0].numval;
         logicBuild.executor.vars[0].numval = Double.NaN;
         editPanel.setScrollPercentY(counter / (codeCells.size() - 1f));
     }
