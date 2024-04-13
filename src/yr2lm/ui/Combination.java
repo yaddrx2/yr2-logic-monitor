@@ -14,6 +14,7 @@ import mindustry.io.JsonIO;
 import mindustry.ui.Styles;
 import mindustry.world.blocks.logic.LogicBlock;
 import mindustry.world.blocks.logic.MemoryBlock;
+import mindustry.world.blocks.logic.MessageBlock;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -68,6 +69,7 @@ public class Combination extends Yrailiuxa2 {
         molds = new ArrayList<>();
         molds.add(LogicBlock.LogicBuild.class);
         molds.add(MemoryBlock.MemoryBuild.class);
+        molds.add(MessageBlock.MessageBuild.class);
         monitorTables = new ArrayList<>();
     }
 
@@ -142,6 +144,10 @@ public class Combination extends Yrailiuxa2 {
             String x = BigDecimal.valueOf(memoryBuild.x / 8).stripTrailingZeros().toPlainString();
             String y = BigDecimal.valueOf(memoryBuild.y / 8).stripTrailingZeros().toPlainString();
             monitor = new MemoryMonitor(memoryBuild.block.name + "(" + x + ", " + y + ")", memoryBuild, Core.input.mouse());
+        } else if (building instanceof MessageBlock.MessageBuild messageBuild) {
+            String x = BigDecimal.valueOf(messageBuild.x / 8).stripTrailingZeros().toPlainString();
+            String y = BigDecimal.valueOf(messageBuild.y / 8).stripTrailingZeros().toPlainString();
+            monitor = new MessageMonitor(messageBuild.block.name + "(" + x + ", " + y + ")", messageBuild, Core.input.mouse());
         }
         assert monitor != null;
         monitor.addToScene();
@@ -185,18 +191,21 @@ public class Combination extends Yrailiuxa2 {
     private void copyConfig(Building building) {
         if (building instanceof LogicBlock.LogicBuild logicBuild)
             Core.app.setClipboardText(logicBuild.code);
-        if (building instanceof MemoryBlock.MemoryBuild memoryBuild)
+        else if (building instanceof MemoryBlock.MemoryBuild memoryBuild)
             Core.app.setClipboardText(JsonIO.write(memoryBuild.memory));
+        else if (building instanceof MessageBlock.MessageBuild messageBuild)
+            Core.app.setClipboardText(JsonIO.write(messageBuild.message.toString()));
     }
 
     private void pasteConfig(Building building) {
         try {
             if (building instanceof LogicBlock.LogicBuild logicBuild)
                 logicBuild.updateCode(Core.app.getClipboardText().replace("\r\n", "\n"));
-            if (building instanceof MemoryBlock.MemoryBuild memoryBuild) {
+            else if (building instanceof MemoryBlock.MemoryBuild memoryBuild) {
                 double[] memory = JsonIO.read(memoryBuild.memory.getClass(), Core.app.getClipboardText());
                 System.arraycopy(memory, 0, memoryBuild.memory, 0, Math.min(memoryBuild.memory.length, memory.length));
-            }
+            } else if (building instanceof MessageBlock.MessageBuild messageBuild)
+                messageBuild.configure(Core.app.getClipboardText().replace("\r\n", "\n"));
         } catch (SerializationException ignored) {
         }
 
