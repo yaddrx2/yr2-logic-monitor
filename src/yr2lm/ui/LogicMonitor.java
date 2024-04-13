@@ -21,7 +21,10 @@ import mindustry.world.blocks.logic.LogicBlock;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class LogicMonitor extends Monitor {
     private final LogicBlock.LogicBuild logicBuild;
@@ -91,7 +94,11 @@ public class LogicMonitor extends Monitor {
             this.codeOrigin = code;
             this.edit = edit;
             codeCellBuild();
-            if (!edit) codeCells.add(this);
+        }
+
+        public CodeCell(int line, String code) {
+            this(line, code, false);
+            codeCells.add(this);
         }
 
         private void codeCellBuild() {
@@ -140,10 +147,10 @@ public class LogicMonitor extends Monitor {
             editPage.row();
             editPanel = editPage.pane(p -> {
                 p.top();
-                for (CodeCell codeCell : codeCells) {
+                codeCells.forEach(codeCell -> {
                     p.add(codeCell).growX();
                     p.row();
-                }
+                });
             }).grow().update(p -> {
                 if (Time.time < editPanelInitTime + 5) p.setScrollPercentY(editPanelScrollPercentY);
                 Element e = Core.scene.hit(Core.input.mouseX(), Core.input.mouseY(), true);
@@ -244,7 +251,7 @@ public class LogicMonitor extends Monitor {
         links.clear();
         varPage.pane(p -> {
             p.top();
-            for (LExecutor.Var var : logicBuild.executor.vars) {
+            Arrays.stream(logicBuild.executor.vars).forEach(var -> {
                 if (!var.constant) {
                     if (checkVarName(var.name)) {
                         p.add(new VarCell(var, var.name)).growX();
@@ -255,16 +262,16 @@ public class LogicMonitor extends Monitor {
                 } else if (!var.name.startsWith("___")) {
                     if (checkVarName(var.name)) links.add(var);
                 }
-            }
-            for (LExecutor.Var var : constants) {
+            });
+            constants.forEach(var -> {
                 p.add(new VarCell(var, var.name)).growX();
                 p.row();
-            }
-            for (int i = 0; i < links.size(); i++) {
+            });
+            IntStream.range(0, links.size()).forEach(i -> {
                 LExecutor.Var var = links.get(i);
                 p.add(new VarCell(var, "[" + i + "] " + var.name)).growX();
                 p.row();
-            }
+            });
         }).grow().update(p -> {
             Element e = Core.scene.hit(Core.input.mouseX(), Core.input.mouseY(), true);
             if (e != null && e.isDescendantOf(p)) p.requestScroll();
@@ -345,12 +352,11 @@ public class LogicMonitor extends Monitor {
         breakpoints.clear();
         editPanel = editPage.pane(p -> {
             p.top();
-            String[] codeList = logicBuild.code.split("\n");
-            if (codeList.length == 0) codeList = new String[]{""};
-            for (int i = 0; i < codeList.length; i++) {
-                p.add(new CodeCell(i, codeList[i], false)).growX();
+            ArrayList<String> codeList = Arrays.stream(logicBuild.code.split("\n")).collect(Collectors.toCollection(ArrayList::new));
+            IntStream.range(0, codeList.size()).forEach(i -> {
+                p.add(new CodeCell(i, codeList.get(i))).growX();
                 p.row();
-            }
+            });
         }).grow().update(p -> {
             if (Time.time < editPanelInitTime + 5) p.setScrollPercentY(editPanelScrollPercentY);
             Element e = Core.scene.hit(Core.input.mouseX(), Core.input.mouseY(), true);
@@ -380,9 +386,7 @@ public class LogicMonitor extends Monitor {
     }
 
     private void uploadCode() {
-        StringBuilder builder = new StringBuilder();
-        for (CodeCell codeCell : codeCells) builder.append(codeCell.code).append("\n");
-        logicBuild.updateCode(builder.toString());
+        logicBuild.updateCode(codeCells.stream().filter(codeCell -> codeCell.code.equals("")).map(codeCell -> codeCell.code + "\n").collect(Collectors.joining()));
     }
 
     private void logicPause() {

@@ -10,6 +10,7 @@ import mindustry.ui.Styles;
 import mindustry.world.blocks.logic.MemoryBlock;
 
 import java.math.BigDecimal;
+import java.util.stream.IntStream;
 
 import static arc.scene.ui.TextField.TextFieldFilter.digitsOnly;
 
@@ -74,7 +75,7 @@ public class MemoryMonitor extends Monitor {
         monitorTable.row();
         if (editMode) monitorTable.table(t -> t.pane(p -> {
             p.top();
-            for (int i = start; i < end / step; i++) {
+            IntStream.range(start, end / step).forEach(i -> {
                 int index = i * step;
                 if (i % col == 0) p.labelWrap("#" + index).size(60, 40).pad(0, 10, 0, 5);
                 p.field(BigDecimal.valueOf(memoryBuild.memory[index]).stripTrailingZeros().toPlainString(), s -> {
@@ -85,7 +86,7 @@ public class MemoryMonitor extends Monitor {
                     }
                 }).minWidth(0).growX().pad(0, 5, 0, 5);
                 if (i % col == col - 1) p.row();
-            }
+            });
         }).grow().update(p -> {
             Element e = Core.scene.hit(Core.input.mouseX(), Core.input.mouseY(), true);
             if (e != null && e.isDescendantOf(p)) p.requestScroll();
@@ -97,7 +98,7 @@ public class MemoryMonitor extends Monitor {
         })).grow();
         else monitorTable.table(t -> t.pane(p -> {
             p.top();
-            for (int i = start; i < end / step; i++) {
+            IntStream.range(start, end / step).forEach(i -> {
                 int index = i * step;
                 if (i % col == 0) p.labelWrap("#" + index).size(60, 35).pad(0, 10, 0, 5);
                 Label label = new Label(() -> BigDecimal.valueOf(memoryBuild.memory[index]).stripTrailingZeros().toPlainString());
@@ -105,7 +106,7 @@ public class MemoryMonitor extends Monitor {
                 label.setAlignment(Align.right);
                 p.add(label).minHeight(35).growX().pad(0, 5, 0, 5);
                 if (i % col == col - 1) p.row();
-            }
+            });
         }).grow().update(p -> {
             Element e = Core.scene.hit(Core.input.mouseX(), Core.input.mouseY(), true);
             if (e != null && e.isDescendantOf(p)) p.requestScroll();

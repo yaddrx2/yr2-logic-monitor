@@ -179,7 +179,6 @@ public class Combination extends Yrailiuxa2 {
             p.setupFadeScrollBars(0.5f, 0.25f);
             p.setFadeScrollBars(true);
         })).grow();
-
     }
 
     private Building getWorldBuild() {
@@ -206,8 +205,6 @@ public class Combination extends Yrailiuxa2 {
                 System.arraycopy(memory, 0, memoryBuild.memory, 0, Math.min(memoryBuild.memory.length, memory.length));
             } else if (building instanceof MessageBlock.MessageBuild messageBuild)
                 messageBuild.configure(Core.app.getClipboardText().replace("\r\n", "\n"));
-        } catch (SerializationException ignored) {
-        }
-
+        } catch (SerializationException ignored) {}
     }
 }
