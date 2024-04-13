@@ -9,12 +9,12 @@ import arc.util.serialization.SerializationException;
 import mindustry.Vars;
 import mindustry.gen.Building;
 import mindustry.gen.Icon;
-import mindustry.graphics.Drawf;
 import mindustry.io.JsonIO;
 import mindustry.ui.Styles;
 import mindustry.world.blocks.logic.LogicBlock;
 import mindustry.world.blocks.logic.MemoryBlock;
 import mindustry.world.blocks.logic.MessageBlock;
+import yr2lm.graphics.DrawExt;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -26,11 +26,13 @@ public class Combination extends Yrailiuxa2 {
 
     private boolean binding = false, copying = false, pasting = false;
 
-    private class MonitorTable extends Table {
+    private class MonitorCell extends Table {
         public Building building;
+        private final Monitor monitor;
 
-        public MonitorTable(Monitor monitor) {
+        public MonitorCell(Monitor monitorInit) {
             super();
+            monitor = monitorInit;
             building = monitor.getBuilding();
             table(t -> {
                 t.table(tt -> tt.labelWrap(monitor.name).grow()).grow().pad(0, 10, 0, 5);
@@ -56,7 +58,7 @@ public class Combination extends Yrailiuxa2 {
 
     private final ArrayList<Monitor> monitors;
     private final ArrayList<Class<? extends Building>> molds;
-    private final ArrayList<MonitorTable> monitorTables;
+    private final ArrayList<MonitorCell> monitorCells;
 
     public Combination(String text) {
         super(text);
@@ -70,7 +72,7 @@ public class Combination extends Yrailiuxa2 {
         molds.add(LogicBlock.LogicBuild.class);
         molds.add(MemoryBlock.MemoryBuild.class);
         molds.add(MessageBlock.MessageBuild.class);
-        monitorTables = new ArrayList<>();
+        monitorCells = new ArrayList<>();
     }
 
     private void combinationTableInit() {
@@ -81,7 +83,7 @@ public class Combination extends Yrailiuxa2 {
                         b.setText("add");
                         Building selected = getWorldBuild();
                         if (selected != null && molds.contains(selected.getClass())) {
-                            Drawf.select(selected.x, selected.y, selected.block.size * 4, Color.valueOf("00ffff"));
+                            DrawExt.select(selected, Color.valueOf("00ffff"));
                             if (Core.input.isTouched()) {
                                 addToCombination(selected);
                                 selected.deselect();
@@ -98,7 +100,7 @@ public class Combination extends Yrailiuxa2 {
                         b.setText("copy");
                         Building selected = getWorldBuild();
                         if (selected != null && molds.contains(selected.getClass())) {
-                            Drawf.select(selected.x, selected.y, selected.block.size * 4, Color.valueOf("ffff00"));
+                            DrawExt.select(selected, Color.valueOf("ffff00"));
                             if (Core.input.isTouched()) {
                                 copyConfig(selected);
                                 selected.deselect();
@@ -115,7 +117,7 @@ public class Combination extends Yrailiuxa2 {
                         b.setText("paste");
                         Building selected = getWorldBuild();
                         if (selected != null && molds.contains(selected.getClass())) {
-                            Drawf.select(selected.x, selected.y, selected.block.size * 4, Color.valueOf("ff00ff"));
+                            DrawExt.select(selected, Color.valueOf("ff00ff"));
                             if (Core.input.isTouched()) {
                                 pasteConfig(selected);
                                 selected.deselect();
@@ -156,24 +158,24 @@ public class Combination extends Yrailiuxa2 {
     }
 
     private void monitorsTableBuild() {
-        monitorTables.clear();
+        monitorCells.clear();
         monitorsTable.clear();
         monitorsTable.table(t -> t.pane(p -> {
             p.top();
-            for (Monitor monitor : monitors) {
-                MonitorTable monitorTable = new MonitorTable(monitor);
-                monitorTables.add(monitorTable);
-                p.add(monitorTable).growX();
+            monitors.forEach(monitor -> {
+                MonitorCell monitorCell = new MonitorCell(monitor);
+                monitorCells.add(monitorCell);
+                p.add(monitorCell).growX();
                 p.row();
-            }
+            });
         }).grow().update(p -> {
             Element e = Core.scene.hit(Core.input.mouseX(), Core.input.mouseY(), true);
             if (e != null && e.isDescendantOf(p)) {
                 p.requestScroll();
-                for (MonitorTable monitorTable : monitorTables) {
-                    if (e.isDescendantOf(monitorTable))
-                        Drawf.select(monitorTable.building.x, monitorTable.building.y, monitorTable.building.block.size * 4, Color.valueOf("00ffff"));
-                }
+                monitorCells.stream().filter(e::isDescendantOf).forEach(monitorCell -> {
+                    DrawExt.select(monitorCell.building, Color.valueOf("00ffff"));
+                    DrawExt.screenRect(monitorCell.monitor.pos, monitorCell.monitor.size, Color.valueOf("00ffff"));
+                });
             } else if (p.hasScroll()) Core.scene.setScrollFocus(null);
         }).with(p -> {
             p.setupFadeScrollBars(0.5f, 0.25f);

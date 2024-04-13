@@ -8,16 +8,14 @@ import arc.scene.ui.ImageButton;
 import arc.scene.ui.ScrollPane;
 import arc.scene.ui.TextButton;
 import arc.scene.ui.layout.Table;
-import arc.util.Align;
 import arc.util.Time;
 import mindustry.gen.Building;
 import mindustry.gen.Icon;
 import mindustry.gen.Unit;
-import mindustry.graphics.Drawf;
 import mindustry.logic.LExecutor;
-import mindustry.ui.Fonts;
 import mindustry.ui.Styles;
 import mindustry.world.blocks.logic.LogicBlock;
+import yr2lm.graphics.DrawExt;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -52,15 +50,10 @@ public class LogicMonitor extends Monitor {
                 Element e = Core.scene.hit(Core.input.mouseX(), Core.input.mouseY(), true);
                 if (draw || e != null && e.isDescendantOf(t)) {
                     if (var.isobj && !(var.objval instanceof String))
-                        if (var.objval instanceof Unit unit) {
-                            Drawf.select(unit.x, unit.y, unit.type.hitSize, Color.valueOf("00ffff"));
-                            Drawf.line(Color.valueOf("00ffff"), logicBuild.x, logicBuild.y, unit.x, unit.y);
-                            Fonts.outline.draw(var.name, unit.x, unit.y - unit.type.hitSize - 4, Color.valueOf("00ffff"), 0.4f, false, Align.center);
-                        } else if (var.objval instanceof Building building) {
-                            Drawf.select(building.x, building.y, building.block.size * 4, Color.valueOf("00ffff"));
-                            Drawf.line(Color.valueOf("00ffff"), logicBuild.x, logicBuild.y, building.x, building.y);
-                            Fonts.outline.draw(var.name, building.x, building.y - building.block.size * 4 - 4, Color.valueOf("00ffff"), 0.4f, false, Align.center);
-                        }
+                        if (var.objval instanceof Unit unit)
+                            DrawExt.info(new Vec2(logicBuild.x, logicBuild.y), unit, var.name, Color.valueOf("00ffff"));
+                        else if (var.objval instanceof Building building)
+                            DrawExt.info(new Vec2(logicBuild.x, logicBuild.y), building, var.name, Color.valueOf("00ffff"));
                 }
             });
         }
