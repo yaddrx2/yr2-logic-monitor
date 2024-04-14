@@ -47,13 +47,22 @@ public class LogicMonitor extends Monitor {
                 t.table(tt -> tt.labelWrap(varName).grow()).grow().pad(0, 10, 0, 5);
                 t.table(tt -> tt.labelWrap(() -> formatVarText(this.var)).grow()).grow().pad(0, 5, 0, 10);
             }).minHeight(35).growX().update(t -> {
-                Element e = Core.scene.hit(Core.input.mouseX(), Core.input.mouseY(), true);
-                if (draw || e != null && e.isDescendantOf(t)) {
-                    if (var.isobj && !(var.objval instanceof String))
-                        if (var.objval instanceof Unit unit)
+                if (!var.isobj || var.objval instanceof String) return;
+                if (draw) {
+                    if (var.objval instanceof Unit unit)
+                        DrawExt.info(new Vec2(logicBuild.x, logicBuild.y), unit, var.name, Color.valueOf("00ffff"));
+                    else if (var.objval instanceof Building building)
+                        DrawExt.info(new Vec2(logicBuild.x, logicBuild.y), building, var.name, Color.valueOf("00ffff"));
+                } else {
+                    Element e = Core.scene.hit(Core.input.mouseX(), Core.input.mouseY(), true);
+                    if (e != null && e.isDescendantOf(t))
+                        if (var.objval instanceof Unit unit) {
                             DrawExt.info(new Vec2(logicBuild.x, logicBuild.y), unit, var.name, Color.valueOf("00ffff"));
-                        else if (var.objval instanceof Building building)
+                            DrawExt.screenWorldLine(new Vec2(Core.input.mouse()), unit, Color.valueOf("00ffff"));
+                        } else if (var.objval instanceof Building building) {
                             DrawExt.info(new Vec2(logicBuild.x, logicBuild.y), building, var.name, Color.valueOf("00ffff"));
+                            DrawExt.screenWorldLine(new Vec2(Core.input.mouse()), building, Color.valueOf("00ffff"));
+                        }
                 }
             });
         }

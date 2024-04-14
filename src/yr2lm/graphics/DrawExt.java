@@ -28,7 +28,6 @@ public class DrawExt {
     public static void info(Vec2 pos1, Vec2 pos2, float rad, String name, Color color) {
         select(pos2, rad, color);
         worldLine(pos1, pos2, color);
-        screenWorldLine(new Vec2(Core.input.mouse()), pos2, color);
         Fonts.outline.draw(name, pos2.x, pos2.y - rad - 4, color, 0.4f, false, Align.center);
     }
 
@@ -56,12 +55,12 @@ public class DrawExt {
         worldLine(Core.camera.unproject(new Vec2(pos1)), Core.camera.unproject(new Vec2(pos2)), color);
     }
 
-    public static void screenWorldLine(Vec2 pos1, Vec2 pos2, Color color) {
-        worldLine(Core.camera.unproject(new Vec2(pos1)), pos2, color);
+    public static void screenWorldLine(Vec2 pos, Unit unit, Color color) {
+        worldLine(Core.camera.unproject(new Vec2(pos)), new Vec2(unit.x, unit.y), color);
     }
 
-    public static void screenWorldLine(Vec2 pos1, Building building, Color color) {
-        worldLine(Core.camera.unproject(new Vec2(pos1)), new Vec2(building.x, building.y), color);
+    public static void screenWorldLine(Vec2 pos, Building building, Color color) {
+        worldLine(Core.camera.unproject(new Vec2(pos)), new Vec2(building.x, building.y), color);
     }
 
     public static void worldLine(Vec2 pos1, Vec2 pos2, Color color) {

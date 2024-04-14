@@ -175,9 +175,11 @@ public class Combination extends Yrailiuxa2 {
                 p.requestScroll();
                 monitorCells.stream().filter(e::isDescendantOf).forEach(monitorCell -> {
                     DrawExt.select(monitorCell.building, Color.valueOf("00ffff"));
-                    DrawExt.screenRect(monitorCell.monitor.pos, monitorCell.monitor.size, Color.valueOf("00ffff"));
-                    DrawExt.screenLine(Core.input.mouse(), new Vec2(monitorCell.monitor.pos).mulAdd(monitorCell.monitor.size, 0.5f), Color.valueOf("00ffff"));
-                    DrawExt.screenWorldLine(Core.input.mouse(), monitorCell.building, Color.valueOf("00ffff"));
+                    DrawExt.screenWorldLine(new Vec2(Core.input.mouse()), monitorCell.building, Color.valueOf("00ffff"));
+                    if (!monitorCell.monitor.hidden) {
+                        DrawExt.screenRect(monitorCell.monitor.pos, monitorCell.monitor.size, Color.valueOf("00ffff"));
+                        DrawExt.screenLine(new Vec2(Core.input.mouse()), new Vec2(monitorCell.monitor.pos).mulAdd(monitorCell.monitor.size, 0.5f), Color.valueOf("00ffff"));
+                    }
                 });
             } else if (p.hasScroll()) Core.scene.setScrollFocus(null);
         }).with(p -> {
