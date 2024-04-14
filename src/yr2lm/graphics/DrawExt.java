@@ -12,36 +12,32 @@ import mindustry.graphics.Pal;
 import mindustry.ui.Fonts;
 
 public class DrawExt {
-    public static void select(Unit unit, Color color) {
+    public static void select(Vec2 pos, float rad, Color color) {
         float zoom = Core.camera.width / Core.graphics.getWidth();
         Lines.stroke(zoom * 6, Pal.gray);
-        Lines.square(unit.x, unit.y, unit.type.hitSize + zoom * 2);
+        Lines.square(pos.x, pos.y, rad + zoom * 2);
         Lines.stroke(zoom * 2, color);
-        Lines.square(unit.x, unit.y, unit.type.hitSize);
+        Lines.square(pos.x, pos.y, rad);
         Draw.reset();
     }
 
     public static void select(Building building, Color color) {
-        float zoom = Core.camera.width / Core.graphics.getWidth();
-        Lines.stroke(zoom * 6, Pal.gray);
-        Lines.square(building.x, building.y, building.block.size * 4 + zoom * 2);
-        Lines.stroke(zoom * 2, color);
-        Lines.square(building.x, building.y, building.block.size * 4);
-        Draw.reset();
+        select(new Vec2(building.x, building.y), building.block.size * 4, color);
+    }
+
+    public static void info(Vec2 pos1, Vec2 pos2, float rad, String name, Color color) {
+        select(pos2, rad, color);
+        worldLine(pos1, pos2, color);
+        screenWorldLine(new Vec2(Core.input.mouse()), pos2, color);
+        Fonts.outline.draw(name, pos2.x, pos2.y - rad - 4, color, 0.4f, false, Align.center);
     }
 
     public static void info(Vec2 pos, Unit unit, String name, Color color) {
-        select(unit, color);
-        worldLine(color, pos, new Vec2(unit.x, unit.y));
-        screenLine(color, new Vec2(Core.input.mouse()), new Vec2(unit.x, unit.y));
-        Fonts.outline.draw(name, unit.x, unit.y - unit.type.hitSize - 4, color, 0.4f, false, Align.center);
+        info(pos, new Vec2(unit.x, unit.y), unit.type.hitSize, name, color);
     }
 
     public static void info(Vec2 pos, Building building, String name, Color color) {
-        select(building, color);
-        worldLine(color, pos, new Vec2(building.x, building.y));
-        screenLine(color, new Vec2(Core.input.mouse()), new Vec2(building.x, building.y));
-        Fonts.outline.draw(name, building.x, building.y - building.block.size * 4 - 4, color, 0.4f, false, Align.center);
+        info(pos, new Vec2(building.x, building.y), building.block.size * 4, name, color);
     }
 
     public static void screenRect(Vec2 pos, Vec2 size, Color color) {
@@ -56,11 +52,19 @@ public class DrawExt {
         Draw.reset();
     }
 
-    public static void screenLine(Color color, Vec2 pos1, Vec2 pos2) {
-        worldLine(color, Core.camera.unproject(new Vec2(pos1)), pos2);
+    public static void screenLine(Vec2 pos1, Vec2 pos2, Color color) {
+        worldLine(Core.camera.unproject(new Vec2(pos1)), Core.camera.unproject(new Vec2(pos2)), color);
     }
 
-    public static void worldLine(Color color, Vec2 pos1, Vec2 pos2) {
+    public static void screenWorldLine(Vec2 pos1, Vec2 pos2, Color color) {
+        worldLine(Core.camera.unproject(new Vec2(pos1)), pos2, color);
+    }
+
+    public static void screenWorldLine(Vec2 pos1, Building building, Color color) {
+        worldLine(Core.camera.unproject(new Vec2(pos1)), new Vec2(building.x, building.y), color);
+    }
+
+    public static void worldLine(Vec2 pos1, Vec2 pos2, Color color) {
         float zoom = Core.camera.width / Core.graphics.getWidth();
         Lines.stroke(zoom * 6);
         Draw.color(Pal.gray, color.a);

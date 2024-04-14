@@ -2,6 +2,7 @@ package yr2lm.ui;
 
 import arc.Core;
 import arc.graphics.Color;
+import arc.math.geom.Vec2;
 import arc.scene.Element;
 import arc.scene.ui.ImageButton;
 import arc.scene.ui.layout.Table;
@@ -175,6 +176,8 @@ public class Combination extends Yrailiuxa2 {
                 monitorCells.stream().filter(e::isDescendantOf).forEach(monitorCell -> {
                     DrawExt.select(monitorCell.building, Color.valueOf("00ffff"));
                     DrawExt.screenRect(monitorCell.monitor.pos, monitorCell.monitor.size, Color.valueOf("00ffff"));
+                    DrawExt.screenLine(Core.input.mouse(), new Vec2(monitorCell.monitor.pos).mulAdd(monitorCell.monitor.size, 0.5f), Color.valueOf("00ffff"));
+                    DrawExt.screenWorldLine(Core.input.mouse(), monitorCell.building, Color.valueOf("00ffff"));
                 });
             } else if (p.hasScroll()) Core.scene.setScrollFocus(null);
         }).with(p -> {
