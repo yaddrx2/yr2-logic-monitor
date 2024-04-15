@@ -388,7 +388,13 @@ public class LogicMonitor extends Monitor {
     }
 
     private void uploadCode() {
-        logicBuild.updateCode(codeCells.stream().filter(codeCell -> codeCell.code.equals("")).map(codeCell -> codeCell.code + "\n").collect(Collectors.joining()));
+        logicBuild.updateCode(codeCells.stream()
+                .filter(codeCell -> !codeCell.code.equals(""))
+                .map(codeCell -> codeCell.code + "\n")
+                .collect(Collectors.joining())
+        );
+        editPanelScrollPercentY = editPanel.getScrollPercentY();
+        editPageBuild();
     }
 
     private void logicPause() {
