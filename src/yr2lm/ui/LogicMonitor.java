@@ -287,7 +287,7 @@ public class LogicMonitor extends Monitor {
                 editPanelScrollPercentY = editPanel.getScrollPercentY();
                 editPageBuild();
             }).grow();
-            t.button(Icon.upload, Styles.emptyi, this::uploadCode).grow();
+            t.button(Icon.save, Styles.emptyi, this::uploadCode).grow();
             t.button(Icon.edit, Styles.emptyi, () -> {
                 if (showVarPage) showEditPage = false;
                 else showVarPage = true;

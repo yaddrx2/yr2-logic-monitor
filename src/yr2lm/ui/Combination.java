@@ -214,4 +214,10 @@ public class Combination extends Yrailiuxa2 {
                 messageBuild.configure(Core.app.getClipboardText().replace("\r\n", "\n"));
         } catch (SerializationException ignored) {}
     }
+
+    public void clearMonitor() {
+        monitors.forEach(Yrailiuxa2::removeFromScene);
+        monitors.clear();
+        monitorsTableBuild();
+    }
 }
