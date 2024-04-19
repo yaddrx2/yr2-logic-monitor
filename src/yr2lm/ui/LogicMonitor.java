@@ -35,7 +35,6 @@ public class LogicMonitor extends Monitor {
     private int counter;
     private final Table varTools, varPage, editTools, editPage;
     private ScrollPane editPanel;
-    private float editPanelInitTime, editPanelScrollPercentY;
 
     private class VarCell extends Table {
         public LExecutor.Var var;
@@ -122,8 +121,7 @@ public class LogicMonitor extends Monitor {
                 }).size(35).right();
                 t.button(Icon.addSmall, Styles.emptyi, () -> {
                     codeCells.add(codeCells.indexOf(this) + 1, new CodeCell(-1, "", true));
-                    editPanelScrollPercentY = editPanel.getScrollPercentY();
-                    rebuild();
+                    rebuild(editPanel.getScrollPercentY());
                 }).size(35).right();
                 t.button(Icon.refreshSmall, Styles.emptyi, () -> {
                     code = codeOrigin;
@@ -131,15 +129,14 @@ public class LogicMonitor extends Monitor {
                 }).size(35).right();
                 t.button(Icon.cancelSmall, Styles.emptyi, () -> {
                     codeCells.remove(this);
-                    editPanelScrollPercentY = editPanel.getScrollPercentY();
-                    rebuild();
+                    rebuild(editPanel.getScrollPercentY());
                 }).size(35).right();
                 t.labelWrap(line == -1 ? "+" : String.valueOf(line)).width(45);
             }).minHeight(35).growX();
+
         }
 
-        private void rebuild() {
-            editPanelInitTime = Time.time;
+        private void rebuild(float scrollPercentY) {
             editPage.clear();
             editPage.top();
             editPage.add(editTools).growX();
@@ -151,7 +148,6 @@ public class LogicMonitor extends Monitor {
                     p.row();
                 });
             }).grow().update(p -> {
-                if (Time.time < editPanelInitTime + 5) p.setScrollPercentY(editPanelScrollPercentY);
                 Element e = Core.scene.hit(Core.input.mouseX(), Core.input.mouseY(), true);
                 if (e != null && e.isDescendantOf(p)) p.requestScroll();
                 else if (p.hasScroll()) Core.scene.setScrollFocus(null);
@@ -159,6 +155,7 @@ public class LogicMonitor extends Monitor {
                 p.setupFadeScrollBars(0.5f, 0.25f);
                 p.setFadeScrollBars(true);
                 p.setScrollingDisabled(true, false);
+                Time.run(1f, () -> p.setScrollPercentY(scrollPercentY));
             }).get();
         }
     }
@@ -181,7 +178,7 @@ public class LogicMonitor extends Monitor {
         varToolsBuild();
         varPageBuild();
         editToolsBuild();
-        editPageBuild();
+        editPageBuild(0f);
         init();
     }
 
@@ -283,10 +280,7 @@ public class LogicMonitor extends Monitor {
 
     private void editToolsBuild() {
         editTools.table(t -> {
-            t.button(Icon.refresh, Styles.emptyi, () -> {
-                editPanelScrollPercentY = editPanel.getScrollPercentY();
-                editPageBuild();
-            }).grow();
+            t.button(Icon.refresh, Styles.emptyi, () -> editPageBuild(editPanel.getScrollPercentY())).grow();
             t.button(Icon.save, Styles.emptyi, this::uploadCode).grow();
             t.button(Icon.edit, Styles.emptyi, () -> {
                 if (showVarPage) showEditPage = false;
@@ -341,8 +335,7 @@ public class LogicMonitor extends Monitor {
         }).height(40).growX();
     }
 
-    private void editPageBuild() {
-        editPanelInitTime = Time.time;
+    private void editPageBuild(float scrollPercentY) {
         editPage.clear();
         editPage.top();
         editPage.add(editTools).growX();
@@ -357,7 +350,6 @@ public class LogicMonitor extends Monitor {
                 p.row();
             });
         }).grow().update(p -> {
-            if (Time.time < editPanelInitTime + 5) p.setScrollPercentY(editPanelScrollPercentY);
             Element e = Core.scene.hit(Core.input.mouseX(), Core.input.mouseY(), true);
             if (e != null && e.isDescendantOf(p)) p.requestScroll();
             else if (p.hasScroll()) Core.scene.setScrollFocus(null);
@@ -365,6 +357,7 @@ public class LogicMonitor extends Monitor {
             p.setupFadeScrollBars(0.5f, 0.25f);
             p.setFadeScrollBars(true);
             p.setScrollingDisabled(true, false);
+            Time.run(1f, () -> p.setScrollPercentY(scrollPercentY));
         }).get();
     }
 
@@ -390,8 +383,7 @@ public class LogicMonitor extends Monitor {
                 .map(codeCell -> codeCell.code + "\n")
                 .collect(Collectors.joining())
         );
-        editPanelScrollPercentY = editPanel.getScrollPercentY();
-        editPageBuild();
+        editPageBuild(editPanel.getScrollPercentY());
     }
 
     private void logicPause() {
