@@ -10,6 +10,7 @@ import arc.scene.ui.Label;
 import arc.scene.ui.layout.Table;
 import arc.util.Align;
 import mindustry.Vars;
+import mindustry.gen.Icon;
 import mindustry.ui.Styles;
 
 public class Yrailiuxa2 extends Table {
@@ -21,6 +22,7 @@ public class Yrailiuxa2 extends Table {
     protected final Vec2 pos, size, bias;
     protected final Vec2 minSize;
     public boolean hidden = false;
+    private boolean showSizeTable = false;
 
     public Yrailiuxa2(String text) {
         name = text;
@@ -34,24 +36,30 @@ public class Yrailiuxa2 extends Table {
         bias = new Vec2();
         minSize = new Vec2();
         background(Styles.black3);
-
         headTableInit(text);
         sizeTableInit();
-        add(headTable).growX();
-        row();
-        table(t -> {
-            t.add(mainTable).top().grow();
-            t.add(sideTable).width(30).growY();
-        }).grow();
-        row();
-        table(t -> {
-            t.add(bottomTable).height(30).growX();
-            t.add(cornerTable).size(30);
-        }).height(30).growX();
+        mainTableBuild();
         update(() -> {
             setPosition(pos.x, pos.y);
             setSize(size.x, size.y);
         });
+    }
+    private void mainTableBuild() {
+        clear();
+        add(headTable).growX();
+        row();
+        if (showSizeTable) {
+            table(t -> {
+                t.add(mainTable).top().grow();
+                t.add(sideTable).width(30).growY();
+            }).grow();
+            row();
+            table(t -> {
+                t.add(bottomTable).height(30).growX();
+                t.add(cornerTable).size(30);
+            }).height(30).growX();
+        } else add(mainTable).top().grow();
+
     }
 
     private void headTableInit(String text) {
@@ -71,6 +79,10 @@ public class Yrailiuxa2 extends Table {
         Label title = new Label(text);
         title.setAlignment(Align.left);
         headTable.add(title).pad(0, 10, 0, 10).height(30).growX();
+        headTable.button(Icon.resizeSmall, Styles.emptyi, () -> {
+            showSizeTable = !showSizeTable;
+            mainTableBuild();
+        }).size(30).right();
     }
 
     private void sizeTableInit() {
@@ -81,6 +93,7 @@ public class Yrailiuxa2 extends Table {
 
     private void sideTableInit() {
         sideTable.touchable = Touchable.enabled;
+        sideTable.background(Styles.black3);
         sideTable.addListener(new InputListener() {
             @Override
             public boolean touchDown(InputEvent event, float xDown, float yDown, int pointer, KeyCode button) {
@@ -97,6 +110,7 @@ public class Yrailiuxa2 extends Table {
 
     private void bottomTableInit() {
         bottomTable.touchable = Touchable.enabled;
+        bottomTable.background(Styles.black3);
         bottomTable.addListener(new InputListener() {
             @Override
             public boolean touchDown(InputEvent event, float xDown, float yDown, int pointer, KeyCode button) {
@@ -119,6 +133,7 @@ public class Yrailiuxa2 extends Table {
 
     private void cornerTableInit() {
         cornerTable.touchable = Touchable.enabled;
+        cornerTable.background(Styles.black3);
         cornerTable.addListener(new InputListener() {
             @Override
             public boolean touchDown(InputEvent event, float xDown, float yDown, int pointer, KeyCode button) {
