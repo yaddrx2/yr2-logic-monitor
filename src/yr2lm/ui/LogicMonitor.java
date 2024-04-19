@@ -299,11 +299,15 @@ public class LogicMonitor extends Monitor {
             t.button(Icon.undo, Styles.emptyi, () -> {
                 if (pause) {
                     forward = true;
-                    if (!breakpoints.isEmpty()) skip = true;
+                    if (skip) skip = false;
+                    else if (!breakpoints.isEmpty()) skip = true;
                 }
             }).grow();
             pauseButton.clicked(() -> {
                 pause = !pause;
+                forward = false;
+                skip = false;
+                stop = false;
                 if (pause) {
                     logicPause();
                     style.imageUp = Icon.play;
