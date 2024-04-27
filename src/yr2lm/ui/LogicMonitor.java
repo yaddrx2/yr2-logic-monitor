@@ -114,13 +114,29 @@ public class LogicMonitor extends Monitor {
                     else breakpoints.add(line);
                 });
                 if (edit) t.field(code, s -> code = s).minWidth(0).grow().pad(0, 5, 0, 5);
-                else t.labelWrap(code).grow().pad(0, 5, 0, 5);
+                else t.labelWrap(() -> code).grow().pad(0, 5, 0, 5);
                 t.button(Icon.pencilSmall, Styles.emptyi, () -> {
                     edit = !edit;
                     codeCellBuild();
                 }).size(35).right();
                 t.button(Icon.addSmall, Styles.emptyi, () -> {
-                    codeCells.add(codeCells.indexOf(this) + 1, new CodeCell(-1, "", true));
+                    codeCells.add(codeCells.indexOf(this) + 1, new CodeCell(-Math.abs(line), "", true));
+                    rebuild(editPanel.getScrollPercentY());
+                }).size(35).right();
+                t.button(Icon.downSmall, Styles.emptyi, () -> {
+                    String clipboard = Core.app.getClipboardText().replace("\r\n", "\n");
+                    ArrayList<CodeCell> clipboardList = Arrays.stream(clipboard.split("\n")).map(word -> {
+                        ArrayList<String> words = Arrays.stream(word.split(" ")).collect(Collectors.toCollection(ArrayList::new));
+                        if (words.get(0).equals("jump")) words.set(1, String.valueOf(Integer.parseInt(words.get(1)) + Math.abs(line) + 1));
+                        return new CodeCell(-Math.abs(line), String.join(" ", words), true);
+                    }).collect(Collectors.toCollection(ArrayList::new));
+                    codeCells.forEach((codeCell -> {
+                        ArrayList<String> words = Arrays.stream(codeCell.code.split(" ")).collect(Collectors.toCollection(ArrayList::new));
+                        if (words.get(0).equals("jump") && Integer.parseInt(words.get(1)) > Math.abs(line))
+                            words.set(1, String.valueOf(Integer.parseInt(words.get(1)) + clipboardList.size()));
+                        codeCell.code = String.join(" ", words);
+                    }));
+                    codeCells.addAll(Math.abs(line) + 1, clipboardList);
                     rebuild(editPanel.getScrollPercentY());
                 }).size(35).right();
                 t.button(Icon.refreshSmall, Styles.emptyi, () -> {
@@ -131,7 +147,7 @@ public class LogicMonitor extends Monitor {
                     codeCells.remove(this);
                     rebuild(editPanel.getScrollPercentY());
                 }).size(35).right();
-                t.labelWrap(line == -1 ? "+" : String.valueOf(line)).width(45);
+                t.labelWrap(line < 0 ? "+" : String.valueOf(line)).width(45);
             }).minHeight(35).growX();
 
         }

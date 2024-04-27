@@ -7,7 +7,7 @@ description: "Logic Monitor
     yaddrx2旧作翻新，仅供学习交流使用
     当前为内测版，暂未公开!
     交流群: 615081546 Mindustry逻辑块游戏研究中心
-    当前版本: 1.2.3
+    当前版本: 1.2.4
     doc:
     1.主窗口: yr2lm
       add: 绑定逻辑块与内存块
@@ -36,6 +36,7 @@ description: "Logic Monitor
         逻辑码列表: 单击行首添加断点
           a.编辑
           b.添加新行
+          c.导入代码块(jump变换)
           c.撤销单行变更
           d.移除本行
     3.内存块: 行首数字为本行首格下标
@@ -54,7 +55,7 @@ description: "Logic Monitor
         b.清除本条
         c.更新时间
 "
-version: 1.2.3
+version: 1.2.4
 minGameVersion: 146
 java: true
 hidden: true
