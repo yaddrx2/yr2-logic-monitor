@@ -34,7 +34,7 @@ public class LogicMonitor extends Monitor {
     private boolean pause = false, forward = false, skip = false, stop = false;
     private int counter;
     private final Table varTools, varPage, editTools, editPage;
-    private ScrollPane editPanel;
+    private ScrollPane varPanel, editPanel;
 
     private class VarCell extends Table {
         public LExecutor.Var var;
@@ -176,7 +176,7 @@ public class LogicMonitor extends Monitor {
         codeCells = new ArrayList<>();
         breakpoints = new HashSet<>();
         varToolsBuild();
-        varPageBuild();
+        varPageBuild(0f);
         editToolsBuild();
         editPageBuild(0f);
         init();
@@ -200,7 +200,7 @@ public class LogicMonitor extends Monitor {
             t.button(Icon.trash, Styles.emptyi, () -> {
                 logicBuild.updateCode(logicBuild.code);
                 if (pause) logicPause();
-                varPageBuild();
+                varPageBuild(varPanel.getScrollPercentY());
             }).grow();
             ImageButton.ImageButtonStyle style = new ImageButton.ImageButtonStyle(Styles.emptyi);
             ImageButton drawButton = t.button(Icon.eyeOffSmall, Styles.emptyi, () -> {
@@ -220,32 +220,32 @@ public class LogicMonitor extends Monitor {
         varTools.table(t -> {
             t.defaults().uniform();
             t.field(varFilter, s -> varFilter = s).minWidth(0).padLeft(10).grow();
-            t.button(Icon.zoom, Styles.emptyi, this::varPageBuild).grow();
+            t.button(Icon.zoom, Styles.emptyi, () -> varPageBuild(varPanel.getScrollPercentY())).grow();
             TextButton buttonCc = t.button(filterCc ? "Cc" : "[grey]Cc", Styles.cleart, () -> {
             }).grow().get();
             buttonCc.clicked(() -> {
                 filterCc = !filterCc;
                 buttonCc.setText(filterCc ? "Cc" : "[grey]Cc");
-                varPageBuild();
+                varPageBuild(varPanel.getScrollPercentY());
             });
             TextButton buttonW = t.button(filterW ? "W" : "[grey]W", Styles.cleart, () -> {
             }).grow().get();
             buttonW.clicked(() -> {
                 filterW = !filterW;
                 buttonW.setText(filterW ? "W" : "[grey]W");
-                varPageBuild();
+                varPageBuild(varPanel.getScrollPercentY());
             });
         }).height(40).growX();
     }
 
-    private void varPageBuild() {
+    private void varPageBuild(float scrollPercentY) {
         varPage.clear();
         varPage.top();
         varPage.add(varTools).growX();
         varPage.row();
         constants.clear();
         links.clear();
-        varPage.pane(p -> {
+        varPanel = varPage.pane(p -> {
             p.top();
             Arrays.stream(logicBuild.executor.vars).forEach(var -> {
                 if (!var.constant) {
@@ -275,7 +275,8 @@ public class LogicMonitor extends Monitor {
         }).with(p -> {
             p.setupFadeScrollBars(0.5f, 0.25f);
             p.setFadeScrollBars(true);
-        });
+            Time.run(1f, () -> p.setScrollPercentY(scrollPercentY));
+        }).get();
     }
 
     private void editToolsBuild() {

@@ -220,4 +220,5 @@ public class Combination extends Yrailiuxa2 {
         monitors.clear();
         monitorsTableBuild();
     }
+
 }
