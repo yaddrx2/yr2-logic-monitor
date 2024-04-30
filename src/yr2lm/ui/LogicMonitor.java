@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 public class LogicMonitor extends Monitor {
     private final LogicBlock.LogicBuild logicBuild;
@@ -279,11 +278,11 @@ public class LogicMonitor extends Monitor {
                 p.add(new VarCell(var, var.name)).growX();
                 p.row();
             });
-            IntStream.range(0, links.size()).forEach(i -> {
+            for (int i = 0; i < links.size(); i++) {
                 LExecutor.Var var = links.get(i);
                 p.add(new VarCell(var, "[" + i + "] " + var.name)).growX();
                 p.row();
-            });
+            }
         }).grow().update(p -> {
             Element e = Core.scene.hit(Core.input.mouseX(), Core.input.mouseY(), true);
             if (e != null && e.isDescendantOf(p)) p.requestScroll();
@@ -366,10 +365,10 @@ public class LogicMonitor extends Monitor {
         editPanel = editPage.pane(p -> {
             p.top();
             ArrayList<String> codeList = Arrays.stream(logicBuild.code.split("\n")).collect(Collectors.toCollection(ArrayList::new));
-            IntStream.range(0, codeList.size()).forEach(i -> {
+            for (int i = 0; i < codeList.size(); i++) {
                 p.add(new CodeCell(i, codeList.get(i))).growX();
                 p.row();
-            });
+            }
         }).grow().update(p -> {
             Element e = Core.scene.hit(Core.input.mouseX(), Core.input.mouseY(), true);
             if (e != null && e.isDescendantOf(p)) p.requestScroll();
