@@ -25,11 +25,10 @@ import java.util.stream.Collectors;
 
 public class LogicMonitor extends Monitor {
     private final LogicBlock.LogicBuild logicBuild;
-
+    private boolean showVarPage = true, showEditPage = false;
     private String varFilter = "";
     private boolean filterCc = false, filterW = false;
-    private boolean showVarPage = true, showEditPage = false;
-    private boolean draw = false;
+    private boolean drawAllVars = false;
     private boolean pause = false, forward = false, skip = false, stop = false;
     private int counter;
     private final Table varTools, varPage, editTools, editPage;
@@ -47,7 +46,7 @@ public class LogicMonitor extends Monitor {
             }).minHeight(35).growX().update(t -> {
                 if (!var.isobj || var.objval instanceof String) return;
                 Element e = Core.scene.hit(Core.input.mouseX(), Core.input.mouseY(), true);
-                if (draw || e != null && e.isDescendantOf(t)) {
+                if (drawAllVars || e != null && e.isDescendantOf(t)) {
                     if (var.objval instanceof Unit unit)
                         DrawExt.info(new Vec2(logicBuild.x, logicBuild.y), unit, var.name, Color.valueOf("00ffff"));
                     else if (var.objval instanceof Building building)
@@ -120,7 +119,7 @@ public class LogicMonitor extends Monitor {
                 }).size(35).right();
                 t.button(Icon.addSmall, Styles.emptyi, () -> {
                     codeCells.add(codeCells.indexOf(this) + 1, new CodeCell(-Math.abs(line), "", true));
-                    rebuild(editPanel.getScrollPercentY());
+                    rebuild();
                 }).size(35).right();
                 t.button(Icon.downSmall, Styles.emptyi, () -> {
                     String clipboard = Core.app.getClipboardText().replace("\r\n", "\n");
@@ -136,7 +135,7 @@ public class LogicMonitor extends Monitor {
                         codeCell.code = String.join(" ", words);
                     }));
                     codeCells.addAll(Math.abs(line) + 1, clipboardList);
-                    rebuild(editPanel.getScrollPercentY());
+                    rebuild();
                 }).size(35).right();
                 t.button(Icon.refreshSmall, Styles.emptyi, () -> {
                     code = codeOrigin;
@@ -144,14 +143,14 @@ public class LogicMonitor extends Monitor {
                 }).size(35).right();
                 t.button(Icon.cancelSmall, Styles.emptyi, () -> {
                     codeCells.remove(this);
-                    rebuild(editPanel.getScrollPercentY());
+                    rebuild();
                 }).size(35).right();
                 t.labelWrap(line < 0 ? "+" : String.valueOf(line)).width(45);
             }).minHeight(35).growX();
 
         }
 
-        private void rebuild(float scrollPercentY) {
+        private void rebuild() {
             editPage.clear();
             editPage.top();
             editPage.add(editTools).growX();
@@ -170,7 +169,10 @@ public class LogicMonitor extends Monitor {
                 p.setupFadeScrollBars(0.5f, 0.25f);
                 p.setFadeScrollBars(true);
                 p.setScrollingDisabled(true, false);
-                Time.run(1f, () -> p.setScrollPercentY(scrollPercentY));
+                if (editPanel != null) {
+                    float scrollPercentY = editPanel.getScrollPercentY();
+                    Time.run(1f, () -> p.setScrollPercentY(scrollPercentY));
+                }
             }).get();
         }
     }
@@ -191,9 +193,7 @@ public class LogicMonitor extends Monitor {
         codeCells = new ArrayList<>();
         breakpoints = new HashSet<>();
         varToolsBuild();
-        varPageBuild(0f);
         editToolsBuild();
-        editPageBuild(0f);
         init();
     }
 
@@ -201,6 +201,8 @@ public class LogicMonitor extends Monitor {
     public void init() {
         monitorTable.clear();
         monitorTable.defaults().uniform();
+        varPageBuild();
+        editPageBuild();
         if (showVarPage) monitorTable.add(varPage).grow();
         if (showEditPage) monitorTable.add(editPage).grow();
     }
@@ -215,14 +217,14 @@ public class LogicMonitor extends Monitor {
             t.button(Icon.trash, Styles.emptyi, () -> {
                 logicBuild.updateCode(logicBuild.code);
                 if (pause) logicPause();
-                varPageBuild(varPanel.getScrollPercentY());
+                varPageBuild();
             }).grow();
             ImageButton.ImageButtonStyle style = new ImageButton.ImageButtonStyle(Styles.emptyi);
             ImageButton drawButton = t.button(Icon.eyeOffSmall, Styles.emptyi, () -> {
             }).grow().get();
             drawButton.clicked(() -> {
-                draw = !draw;
-                style.imageUp = draw ? Icon.eyeSmall : Icon.eyeOffSmall;
+                drawAllVars = !drawAllVars;
+                style.imageUp = drawAllVars ? Icon.eyeSmall : Icon.eyeOffSmall;
                 drawButton.setStyle(style);
             });
             t.button(Icon.edit, Styles.emptyi, () -> {
@@ -235,25 +237,25 @@ public class LogicMonitor extends Monitor {
         varTools.table(t -> {
             t.defaults().uniform();
             t.field(varFilter, s -> varFilter = s).minWidth(0).padLeft(10).grow();
-            t.button(Icon.zoom, Styles.emptyi, () -> varPageBuild(varPanel.getScrollPercentY())).grow();
+            t.button(Icon.zoom, Styles.emptyi, this::varPageBuild).grow();
             TextButton buttonCc = t.button(filterCc ? "Cc" : "[grey]Cc", Styles.cleart, () -> {
             }).grow().get();
             buttonCc.clicked(() -> {
                 filterCc = !filterCc;
                 buttonCc.setText(filterCc ? "Cc" : "[grey]Cc");
-                varPageBuild(varPanel.getScrollPercentY());
+                varPageBuild();
             });
             TextButton buttonW = t.button(filterW ? "W" : "[grey]W", Styles.cleart, () -> {
             }).grow().get();
             buttonW.clicked(() -> {
                 filterW = !filterW;
                 buttonW.setText(filterW ? "W" : "[grey]W");
-                varPageBuild(varPanel.getScrollPercentY());
+                varPageBuild();
             });
         }).height(40).growX();
     }
 
-    private void varPageBuild(float scrollPercentY) {
+    private void varPageBuild() {
         varPage.clear();
         varPage.top();
         varPage.add(varTools).growX();
@@ -290,13 +292,16 @@ public class LogicMonitor extends Monitor {
         }).with(p -> {
             p.setupFadeScrollBars(0.5f, 0.25f);
             p.setFadeScrollBars(true);
-            Time.run(1f, () -> p.setScrollPercentY(scrollPercentY));
+            if (varPanel != null) {
+                float scrollPercentY = varPanel.getScrollPercentY();
+                Time.run(1f, () -> p.setScrollPercentY(scrollPercentY));
+            }
         }).get();
     }
 
     private void editToolsBuild() {
         editTools.table(t -> {
-            t.button(Icon.refresh, Styles.emptyi, () -> editPageBuild(editPanel.getScrollPercentY())).grow();
+            t.button(Icon.refresh, Styles.emptyi, this::editPageBuild).grow();
             t.button(Icon.save, Styles.emptyi, this::uploadCode).grow();
             t.button(Icon.edit, Styles.emptyi, () -> {
                 if (showVarPage) showEditPage = false;
@@ -355,7 +360,7 @@ public class LogicMonitor extends Monitor {
         }).height(40).growX();
     }
 
-    private void editPageBuild(float scrollPercentY) {
+    private void editPageBuild() {
         editPage.clear();
         editPage.top();
         editPage.add(editTools).growX();
@@ -377,7 +382,10 @@ public class LogicMonitor extends Monitor {
             p.setupFadeScrollBars(0.5f, 0.25f);
             p.setFadeScrollBars(true);
             p.setScrollingDisabled(true, false);
-            Time.run(1f, () -> p.setScrollPercentY(scrollPercentY));
+            if (editPanel != null) {
+                float scrollPercentY = editPanel.getScrollPercentY();
+                Time.run(1f, () -> p.setScrollPercentY(scrollPercentY));
+            }
         }).get();
     }
 
@@ -403,7 +411,7 @@ public class LogicMonitor extends Monitor {
                 .map(codeCell -> codeCell.code + "\n")
                 .collect(Collectors.joining())
         );
-        editPageBuild(editPanel.getScrollPercentY());
+        editPageBuild();
     }
 
     private void logicPause() {
