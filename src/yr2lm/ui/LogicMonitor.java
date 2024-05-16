@@ -8,6 +8,7 @@ import arc.scene.ui.ImageButton;
 import arc.scene.ui.ScrollPane;
 import arc.scene.ui.TextButton;
 import arc.scene.ui.layout.Table;
+import arc.util.Log;
 import arc.util.Time;
 import mindustry.gen.Building;
 import mindustry.gen.Icon;
@@ -30,7 +31,7 @@ public class LogicMonitor extends Monitor {
     private boolean filterCc = false, filterW = false;
     private boolean drawAllVars = false;
     private boolean pause = false, forward = false, skip = false, stop = false;
-    private int counter;
+    private int counter, varHash;
     private final Table varTools, varPage, editTools, editPage;
     private ScrollPane varPanel, editPanel;
 
@@ -199,10 +200,14 @@ public class LogicMonitor extends Monitor {
 
     @Override
     public void init() {
-        monitorTable.clear();
-        monitorTable.defaults().uniform();
         varPageBuild();
         editPageBuild();
+        monitorTableBuild();
+    }
+
+    private void monitorTableBuild() {
+        monitorTable.clear();
+        monitorTable.defaults().uniform();
         if (showVarPage) monitorTable.add(varPage).grow();
         if (showEditPage) monitorTable.add(editPage).grow();
     }
@@ -230,7 +235,7 @@ public class LogicMonitor extends Monitor {
             t.button(Icon.edit, Styles.emptyi, () -> {
                 if (showEditPage) showVarPage = false;
                 else showEditPage = true;
-                init();
+                monitorTableBuild();
             }).grow();
         }).height(40).growX();
         varTools.row();
@@ -262,6 +267,7 @@ public class LogicMonitor extends Monitor {
         varPage.row();
         constants.clear();
         links.clear();
+        if (logicBuild.executor.counter != null) varHash = logicBuild.executor.counter.hashCode();
         varPanel = varPage.pane(p -> {
             p.top();
             Arrays.stream(logicBuild.executor.vars).forEach(var -> {
@@ -289,10 +295,14 @@ public class LogicMonitor extends Monitor {
             Element e = Core.scene.hit(Core.input.mouseX(), Core.input.mouseY(), true);
             if (e != null && e.isDescendantOf(p)) p.requestScroll();
             else if (p.hasScroll()) Core.scene.setScrollFocus(null);
+            if (logicBuild.executor.counter == null) return;
+            if (logicBuild.executor.counter.hashCode() != varHash) init();
         }).with(p -> {
             p.setupFadeScrollBars(0.5f, 0.25f);
             p.setFadeScrollBars(true);
+            Log.info(varPanel == null);
             if (varPanel != null) {
+                Log.info(varPanel.getScrollPercentY());
                 float scrollPercentY = varPanel.getScrollPercentY();
                 Time.run(1f, () -> p.setScrollPercentY(scrollPercentY));
             }
@@ -306,7 +316,7 @@ public class LogicMonitor extends Monitor {
             t.button(Icon.edit, Styles.emptyi, () -> {
                 if (showVarPage) showEditPage = false;
                 else showVarPage = true;
-                init();
+                monitorTableBuild();
             }).grow();
         }).height(40).growX();
         editTools.row();
@@ -382,7 +392,9 @@ public class LogicMonitor extends Monitor {
             p.setupFadeScrollBars(0.5f, 0.25f);
             p.setFadeScrollBars(true);
             p.setScrollingDisabled(true, false);
+            Log.info(editPanel == null);
             if (editPanel != null) {
+                Log.info(editPanel.getScrollPercentY());
                 float scrollPercentY = editPanel.getScrollPercentY();
                 Time.run(1f, () -> p.setScrollPercentY(scrollPercentY));
             }
