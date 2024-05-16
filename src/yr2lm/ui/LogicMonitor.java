@@ -42,9 +42,9 @@ public class LogicMonitor extends Monitor {
             super();
             this.var = varInit;
             table(t -> {
-                t.table(tt -> tt.labelWrap(varName).grow()).grow().pad(0, 10, 0, 5);
-                t.table(tt -> tt.labelWrap(() -> formatVarText(this.var)).grow()).grow().pad(0, 5, 0, 10);
-            }).minHeight(35).growX().update(t -> {
+                t.table(tt -> tt.labelWrap(varName).grow()).grow().padRight(10);
+                t.table(tt -> tt.labelWrap(() -> formatVarText(this.var)).grow()).grow();
+            }).minHeight(35).growX().pad(0, 10, 0, 10).update(t -> {
                 if (!var.isobj || var.objval instanceof String) return;
                 Element e = Core.scene.hit(Core.input.mouseX(), Core.input.mouseY(), true);
                 if (drawAllVars || e != null && e.isDescendantOf(t)) {
@@ -108,12 +108,12 @@ public class LogicMonitor extends Monitor {
                     }
                     if (breakpoints.contains(line)) return " [red]>";
                     return "";
-                }).width(30).growY().padLeft(10).get().clicked(() -> {
+                }).width(30).growY().padRight(5).get().clicked(() -> {
                     if (breakpoints.contains(line)) breakpoints.remove(line);
                     else breakpoints.add(line);
                 });
-                if (edit) t.field(code, s -> code = s).minWidth(0).grow().pad(0, 5, 0, 5);
-                else t.labelWrap(() -> code).grow().pad(0, 5, 0, 5);
+                if (edit) t.field(code, s -> code = s).minWidth(0).grow().padRight(5);
+                else t.labelWrap(() -> code).grow().padRight(5);
                 t.button(Icon.pencilSmall, Styles.emptyi, () -> {
                     edit = !edit;
                     codeCellBuild();
@@ -147,7 +147,7 @@ public class LogicMonitor extends Monitor {
                     rebuild();
                 }).size(35).right();
                 t.labelWrap(line < 0 ? "+" : String.valueOf(line)).width(45);
-            }).minHeight(35).growX();
+            }).minHeight(35).growX().padLeft(10);
 
         }
 
