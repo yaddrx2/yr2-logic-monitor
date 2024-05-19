@@ -55,6 +55,20 @@ public class Combination extends Yrailiuxa2 {
                 }).pad(0, 5, 0, 10);
             }).height(35).growX();
         }
+
+        public void drawInfo() {
+            DrawExt.select(building, Color.valueOf("00ffff"));
+            DrawExt.screenWorldLine(new Vec2(Core.input.mouse()), building, Color.valueOf("00ffff"));
+            if (!monitor.hidden) {
+                DrawExt.screenRect(monitor.pos, monitor.size, Color.valueOf("00ffff"));
+                DrawExt.screenLine(new Vec2(Core.input.mouse()), new Vec2(monitor.pos).mulAdd(monitor.size, 0.5f), Color.valueOf("00ffff"));
+            }
+        }
+
+        public void removeFromScene() {
+            monitor.removeFromScene();
+            monitors.remove(monitor);
+        }
     }
 
     private final ArrayList<Monitor> monitors;
@@ -173,19 +187,11 @@ public class Combination extends Yrailiuxa2 {
             Element e = Core.scene.hit(Core.input.mouseX(), Core.input.mouseY(), true);
             if (e != null && e.isDescendantOf(p)) {
                 p.requestScroll();
-                monitorCells.stream().filter(e::isDescendantOf).forEach(monitorCell -> {
-                    DrawExt.select(monitorCell.building, Color.valueOf("00ffff"));
-                    DrawExt.screenWorldLine(new Vec2(Core.input.mouse()), monitorCell.building, Color.valueOf("00ffff"));
-                    if (!monitorCell.monitor.hidden) {
-                        DrawExt.screenRect(monitorCell.monitor.pos, monitorCell.monitor.size, Color.valueOf("00ffff"));
-                        DrawExt.screenLine(new Vec2(Core.input.mouse()), new Vec2(monitorCell.monitor.pos).mulAdd(monitorCell.monitor.size, 0.5f), Color.valueOf("00ffff"));
-                    }
-                });
+                monitorCells.stream().filter(e::isDescendantOf).forEach(MonitorCell::drawInfo);
             } else if (p.hasScroll()) Core.scene.setScrollFocus(null);
             for (MonitorCell monitorCell : monitorCells) {
                 if (Vars.world.build(monitorCell.building.pos()) != monitorCell.building) {
-                    monitorCell.monitor.removeFromScene();
-                    monitors.remove(monitorCell.monitor);
+                    monitorCell.removeFromScene();
                     monitorsTableBuild();
                     return;
                 }
