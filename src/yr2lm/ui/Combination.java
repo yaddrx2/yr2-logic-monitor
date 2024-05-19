@@ -182,6 +182,14 @@ public class Combination extends Yrailiuxa2 {
                     }
                 });
             } else if (p.hasScroll()) Core.scene.setScrollFocus(null);
+            for (MonitorCell monitorCell : monitorCells) {
+                if (Vars.world.build(monitorCell.building.pos()) != monitorCell.building) {
+                    monitorCell.monitor.removeFromScene();
+                    monitors.remove(monitorCell.monitor);
+                    monitorsTableBuild();
+                    return;
+                }
+            }
         }).with(p -> {
             p.setupFadeScrollBars(0.5f, 0.25f);
             p.setFadeScrollBars(true);
