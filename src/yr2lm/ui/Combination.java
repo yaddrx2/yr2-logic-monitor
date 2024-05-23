@@ -36,7 +36,12 @@ public class Combination extends Yrailiuxa2 {
             monitor = monitorInit;
             building = monitor.getBuilding();
             table(t -> {
-                t.table(tt -> tt.labelWrap(monitor.name).grow()).grow().pad(0, 10, 0, 5);
+                t.table(tt -> tt.labelWrap(() -> {
+                    Element e = Core.scene.hit(Core.input.mouseX(), Core.input.mouseY(), true);
+                    if (e != null && e.isDescendantOf(monitor)) {
+                        return "[#00ffff]" + monitor.name;
+                    } else return monitor.name;
+                }).grow()).grow().pad(0, 10, 0, 5);
                 t.table(tt -> {
                     ImageButton.ImageButtonStyle style = new ImageButton.ImageButtonStyle(Styles.emptyi);
                     ImageButton visibleButton = tt.button(Icon.eyeSmall, Styles.emptyi, () -> {
