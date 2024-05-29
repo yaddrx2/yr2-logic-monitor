@@ -148,7 +148,6 @@ public class LogicMonitor extends Monitor {
                 }).size(35).right();
                 t.labelWrap(line < 0 ? "+" : String.valueOf(line)).width(45);
             }).minHeight(35).growX().padLeft(10);
-
         }
 
         private void rebuild() {

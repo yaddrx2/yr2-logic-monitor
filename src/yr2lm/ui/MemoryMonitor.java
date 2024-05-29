@@ -31,26 +31,35 @@ public class MemoryMonitor extends Monitor {
             super();
             binText = new ArrayList<>();
             for (int i = 0; i < 64; i++) binText.add("0");
-            label(() -> binText.get(0)).grow();
+            setLabelProperty(label(() -> binText.get(0)).grow().get(), 0, index);
             table().grow();
             for (int i = 1; i < 12; i++) {
                 int finalI = i;
-                label(() -> binText.get(finalI)).grow();
+                setLabelProperty(label(() -> binText.get(finalI)).grow().get(), finalI, index);
             }
             row();
             for (int i = 12; i < 64; i++) {
                 int finalI = i;
-                label(() -> (exponent == finalI ? "[#00ffff]" : "") + binText.get(finalI)).grow();
+                setLabelProperty(label(() -> (exponent == finalI ? "[#00ffff]" : "") + binText.get(finalI)).grow().get(), finalI, index);
                 if (i % 13 == 11) row();
             }
+            double[] memoryInput = editMode ? memoryBuf : memoryBuild.memory;
             update(() -> {
-                String[] binaryStr = Long.toBinaryString(Double.doubleToLongBits(memoryBuild.memory[index])).split("");
+                String[] binaryStr = Long.toBinaryString(Double.doubleToLongBits(memoryInput[index])).split("");
                 int length = 64 - binaryStr.length;
                 for (int i = 0; i < length; i++) binText.set(i, "0");
                 for (int i = length; i < 64; i++) binText.set(i, binaryStr[i - length]);
                 StringBuilder sb = new StringBuilder();
                 for (int i = 1; i < 12; i++) sb.append(binText.get(i));
                 exponent = Integer.parseInt(sb.toString(), 2) - 1012;
+            });
+        }
+
+        private void setLabelProperty(Label lb, int binPos, int bufPos) {
+            lb.setAlignment(Align.center);
+            if (editMode) lb.clicked(() -> {
+                binText.set(binPos, binText.get(binPos).equals("0") ? "1" : "0");
+                memoryBuf[bufPos] = Double.longBitsToDouble(Long.parseUnsignedLong(String.join("", binText), 2));
             });
         }
     }
@@ -115,10 +124,6 @@ public class MemoryMonitor extends Monitor {
             t.button(Icon.refresh, Styles.emptyi, this::init).size(50);
             t.button(Icon.grid, Styles.emptyi, () -> {
                 binMode = !binMode;
-                if (editMode) {
-                    memoryBuild.memory = memoryBuf;
-                    editMode = false;
-                }
                 monitorTableBuild();
             }).size(50);
             t.button(Icon.edit, Styles.emptyi, () -> {
@@ -141,15 +146,23 @@ public class MemoryMonitor extends Monitor {
             int bound = end / step;
             for (int i = start; i < bound; i++) {
                 int index = i * step;
-                if (i % col == 0) p.labelWrap("#" + index).size(60, 40).pad(0, 10, 0, 5);
-                p.field(BigDecimal.valueOf(memoryBuild.memory[index]).stripTrailingZeros().toPlainString(), s -> {
+                p.field(doubleToString(memoryBuild.memory[index]), s -> {
                     try {
-                        memoryBuf[index] = Double.parseDouble(s);
+                        switch (s) {
+                            case "Inf" -> memoryBuf[index] = Double.POSITIVE_INFINITY;
+                            case "-Inf" -> memoryBuf[index] = Double.NEGATIVE_INFINITY;
+                            case "NaN" -> memoryBuf[index] = Double.NaN;
+                            default -> memoryBuf[index] = Double.parseDouble(s);
+                        }
                     } catch (NumberFormatException exception) {
                         memoryBuf[index] = 0;
+
                     }
                 }).minWidth(0).growX().pad(0, 5, 0, 5);
-                if (i % col == col - 1) p.row();
+                if (i % col == col - 1) {
+                    p.labelWrap("#" + index).size(60, 40).pad(0, 10, 0, 5);
+                    p.row();
+                }
             }
         }).grow().update(p -> {
             Element e = Core.scene.hit(Core.input.mouseX(), Core.input.mouseY(), true);
@@ -165,12 +178,14 @@ public class MemoryMonitor extends Monitor {
             int bound = end / step;
             for (int i = start; i < bound; i++) {
                 int index = i * step;
-                if (i % col == 0) p.labelWrap("#" + index).size(60, 35).pad(0, 10, 0, 5);
-                Label label = new Label(() -> BigDecimal.valueOf(memoryBuild.memory[index]).stripTrailingZeros().toPlainString());
+                Label label = new Label(() -> doubleToString(memoryBuild.memory[index]));
                 label.setWrap(true);
                 label.setAlignment(Align.right);
                 p.add(label).minHeight(35).growX().pad(0, 5, 0, 5);
-                if (i % col == col - 1) p.row();
+                if (i % col == col - 1) {
+                    p.labelWrap("#" + index).size(60, 40).pad(0, 10, 0, 5);
+                    p.row();
+                }
             }
         }).grow().update(p -> {
             Element e = Core.scene.hit(Core.input.mouseX(), Core.input.mouseY(), true);
@@ -190,8 +205,8 @@ public class MemoryMonitor extends Monitor {
             int bound = end / step;
             for (int i = start; i < bound; i++) {
                 int index = i * step;
-                p.labelWrap("#" + index).size(60, 35).top().pad(0, 10, 0, 5);
                 p.add(new BinCell(index)).height(175).growX().pad(0, 5, 0, 10);
+                p.labelWrap((editMode ? "[#00ffff]#" : "#") + index).size(60, 35).top().pad(0, 10, 0, 5);
                 p.row();
             }
         }).grow().update(p -> {
@@ -203,6 +218,13 @@ public class MemoryMonitor extends Monitor {
             p.setFadeScrollBars(true);
             p.setScrollingDisabled(true, false);
         })).grow();
+    }
+
+    private String doubleToString(double value) {
+        if (Double.isNaN(value)) return "NaN";
+        if (value == Double.POSITIVE_INFINITY) return "Inf";
+        if (value == Double.NEGATIVE_INFINITY) return "-Inf";
+        return BigDecimal.valueOf(value).stripTrailingZeros().toPlainString();
     }
 
     @Override
