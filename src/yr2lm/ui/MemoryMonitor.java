@@ -25,6 +25,7 @@ public class MemoryMonitor extends Monitor {
     private class BinCell extends Table {
 
         private final ArrayList<String> binText;
+        private int exponent = 0;
 
         public BinCell(int index) {
             super();
@@ -39,7 +40,7 @@ public class MemoryMonitor extends Monitor {
             row();
             for (int i = 12; i < 64; i++) {
                 int finalI = i;
-                label(() -> binText.get(finalI)).grow();
+                label(() -> (exponent == finalI ? "[#00ffff]" : "") + binText.get(finalI)).grow();
                 if (i % 13 == 11) row();
             }
             update(() -> {
@@ -47,6 +48,9 @@ public class MemoryMonitor extends Monitor {
                 int length = 64 - binaryStr.length;
                 for (int i = 0; i < length; i++) binText.set(i, "0");
                 for (int i = length; i < 64; i++) binText.set(i, binaryStr[i - length]);
+                StringBuilder sb = new StringBuilder();
+                for (int i = 1; i < 12; i++) sb.append(binText.get(i));
+                exponent = Integer.parseInt(sb.toString(), 2) - 1012;
             });
         }
     }
