@@ -156,7 +156,6 @@ public class MemoryMonitor extends Monitor {
                         }
                     } catch (NumberFormatException exception) {
                         memoryBuf[index] = 0;
-
                     }
                 }).minWidth(0).growX().pad(0, 5, 0, 5);
                 if (i % col == col - 1) {

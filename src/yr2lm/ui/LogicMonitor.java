@@ -67,7 +67,14 @@ public class LogicMonitor extends Monitor {
                 if (var.objval instanceof String) return '"' + var.objval.toString() + '"';
                 if (var.objval == null) return "null";
                 if (var.objval instanceof Unit unit)
-                    return '[' + unit.type.name + '#' + unit.id + "]\n[" + BigDecimal.valueOf(unit.flag).stripTrailingZeros().toPlainString() + "]";
+                    return String.format(
+                        "[%s#%d]\n[%s]",
+                        unit.type.name,
+                        unit.id,
+                        BigDecimal.valueOf(unit.flag)
+                            .stripTrailingZeros()
+                            .toPlainString()
+                    );
                 if (var.objval instanceof Building building)
                     return building.block.name + '#' + building.id;
                 return var.objval.toString();
@@ -103,11 +110,13 @@ public class LogicMonitor extends Monitor {
             table(t -> {
                 t.label(() -> {
                     if (pause ? counter == line : logicBuild.executor.vars.length > 0 && logicBuild.executor.vars[0].numval == line) {
-                        if (breakpoints.contains(line)) return ">[red]>";
-                        return ">>";
+                        return breakpoints.contains(line)
+                            ? ">[red]>"
+                            : ">>";
                     }
-                    if (breakpoints.contains(line)) return " [red]>";
-                    return "";
+                    return breakpoints.contains(line)
+                        ? " [red]>"
+                        : "";
                 }).width(30).growY().padRight(5).get().clicked(() -> {
                     if (breakpoints.contains(line)) breakpoints.remove(line);
                     else breakpoints.add(line);
@@ -285,7 +294,8 @@ public class LogicMonitor extends Monitor {
                 p.add(new VarCell(var, var.name)).growX();
                 p.row();
             });
-            for (int i = 0; i < links.size(); i++) {
+            int size = links.size();
+            for (int i = 0; i < size; i++) {
                 LExecutor.Var var = links.get(i);
                 p.add(new VarCell(var, "[" + i + "] " + var.name)).growX();
                 p.row();
