@@ -132,7 +132,9 @@ public class LogicMonitor extends Monitor {
                     rebuild();
                 }).size(35).right();
                 t.button(Icon.downSmall, Styles.emptyi, () -> {
-                    String clipboard = Core.app.getClipboardText().replace("\r\n", "\n");
+                    String clipboard = Core.app.getClipboardText();
+                    clipboard = clipboard == null ? "" : clipboard.replace("\r\n", "\n");
+
                     ArrayList<CodeCell> clipboardList = Arrays.stream(clipboard.split("\n")).map(word -> {
                         ArrayList<String> words = Arrays.stream(word.split(" ")).collect(Collectors.toCollection(ArrayList::new));
                         if (words.get(0).equals("jump")) words.set(1, String.valueOf(Integer.parseInt(words.get(1)) + Math.abs(line) + 1));

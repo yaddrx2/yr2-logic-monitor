@@ -223,13 +223,16 @@ public class Combination extends Yrailiuxa2 {
     }
 
     private void pasteConfig(Building building) {
+        String clipText = Core.app.getClipboardText();
+        if (clipText == null) return;
+
         if (building instanceof LogicBlock.LogicBuild logicBuild) {
-            logicBuild.updateCode(Core.app.getClipboardText().replace("\r\n", "\n"));
+            logicBuild.updateCode(clipText.replace("\r\n", "\n"));
         } else if (building instanceof MemoryBlock.MemoryBuild memoryBuild) {
             try {
                 double[] memory = JsonIO.read(
                     memoryBuild.memory.getClass(),
-                    Core.app.getClipboardText()
+                    clipText
                 );
                 System.arraycopy(
                     memory,
@@ -240,7 +243,7 @@ public class Combination extends Yrailiuxa2 {
                 );
             } catch (SerializationException ignored) {}
         } else if (building instanceof MessageBlock.MessageBuild messageBuild) {
-            messageBuild.configure(Core.app.getClipboardText().replace("\r\n", "\n"));
+            messageBuild.configure(clipText.replace("\r\n", "\n"));
         }
     }
 
