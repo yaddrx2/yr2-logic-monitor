@@ -8,12 +8,16 @@ import arc.scene.ui.ImageButton;
 import arc.scene.ui.ScrollPane;
 import arc.scene.ui.TextButton;
 import arc.scene.ui.layout.Table;
+import arc.struct.Seq;
 import arc.util.Log;
 import arc.util.Time;
 import mindustry.gen.Building;
 import mindustry.gen.Icon;
 import mindustry.gen.Unit;
+import mindustry.logic.LAssembler;
 import mindustry.logic.LExecutor;
+import mindustry.logic.LStatement;
+import mindustry.logic.LStatements;
 import mindustry.ui.Styles;
 import mindustry.world.blocks.logic.LogicBlock;
 import yr2lm.graphics.DrawExt;
@@ -68,12 +72,12 @@ public class LogicMonitor extends Monitor {
                 if (var.objval == null) return "null";
                 if (var.objval instanceof Unit unit)
                     return String.format(
-                        "[%s#%d]\n[%s]",
-                        unit.type.name,
-                        unit.id,
-                        BigDecimal.valueOf(unit.flag)
-                            .stripTrailingZeros()
-                            .toPlainString()
+                            "[%s#%d]\n[%s]",
+                            unit.type.name,
+                            unit.id,
+                            BigDecimal.valueOf(unit.flag)
+                                    .stripTrailingZeros()
+                                    .toPlainString()
                     );
                 if (var.objval instanceof Building building)
                     return building.block.name + '#' + building.id;
@@ -111,12 +115,12 @@ public class LogicMonitor extends Monitor {
                 t.label(() -> {
                     if (pause ? counter == line : logicBuild.executor.vars.length > 0 && logicBuild.executor.vars[0].numval == line) {
                         return breakpoints.contains(line)
-                            ? ">[red]>"
-                            : ">>";
+                                ? ">[red]>"
+                                : ">>";
                     }
                     return breakpoints.contains(line)
-                        ? " [red]>"
-                        : "";
+                            ? " [red]>"
+                            : "";
                 }).width(30).growY().padRight(5).get().clicked(() -> {
                     if (breakpoints.contains(line)) breakpoints.remove(line);
                     else breakpoints.add(line);
@@ -134,17 +138,21 @@ public class LogicMonitor extends Monitor {
                 t.button(Icon.downSmall, Styles.emptyi, () -> {
                     String clipboard = Core.app.getClipboardText();
                     clipboard = clipboard == null ? "" : clipboard.replace("\r\n", "\n");
-
-                    ArrayList<CodeCell> clipboardList = Arrays.stream(clipboard.split("\n")).map(word -> {
-                        ArrayList<String> words = Arrays.stream(word.split(" ")).collect(Collectors.toCollection(ArrayList::new));
-                        if (words.get(0).equals("jump")) words.set(1, String.valueOf(Integer.parseInt(words.get(1)) + Math.abs(line) + 1));
-                        return new CodeCell(-Math.abs(line), String.join(" ", words), true);
-                    }).collect(Collectors.toCollection(ArrayList::new));
+                    ArrayList<CodeCell> clipboardList = LAssembler.read(clipboard, true).map(ls -> {
+                        if (ls instanceof LStatements.JumpStatement jumpStatement)
+                            jumpStatement.destIndex += Math.abs(line) + 1;
+                        StringBuilder sb = new StringBuilder();
+                        ls.write(sb);
+                        return new CodeCell(-Math.abs(line), sb.toString(), true);
+                    }).list();
                     codeCells.forEach((codeCell -> {
-                        ArrayList<String> words = Arrays.stream(codeCell.code.split(" ")).collect(Collectors.toCollection(ArrayList::new));
-                        if (words.get(0).equals("jump") && Integer.parseInt(words.get(1)) > Math.abs(line))
-                            words.set(1, String.valueOf(Integer.parseInt(words.get(1)) + clipboardList.size()));
-                        codeCell.code = String.join(" ", words);
+                        LStatement ls = LAssembler.read(codeCell.code, true).get(0);
+                        if (ls instanceof LStatements.JumpStatement jumpStatement && jumpStatement.destIndex > Math.abs(line)) {
+                            jumpStatement.destIndex += clipboardList.size();
+                            StringBuilder sb = new StringBuilder();
+                            ls.write(sb);
+                            codeCell.code = sb.toString();
+                        }
                     }));
                     codeCells.addAll(Math.abs(line) + 1, clipboardList);
                     rebuild();
@@ -390,9 +398,11 @@ public class LogicMonitor extends Monitor {
         breakpoints.clear();
         editPanel = editPage.pane(p -> {
             p.top();
-            ArrayList<String> codeList = Arrays.stream(logicBuild.code.split("\n")).collect(Collectors.toCollection(ArrayList::new));
-            for (int i = 0; i < codeList.size(); i++) {
-                p.add(new CodeCell(i, codeList.get(i))).growX();
+            Seq<LStatement> codeList = LAssembler.read(logicBuild.code, logicBuild.block.privileged);
+            for (int i = 0; i < codeList.size; i++) {
+                StringBuilder sb = new StringBuilder();
+                codeList.get(i).write(sb);
+                p.add(new CodeCell(i, sb.toString())).growX();
                 p.row();
             }
         }).grow().update(p -> {
