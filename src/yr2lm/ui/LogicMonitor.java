@@ -214,6 +214,10 @@ public class LogicMonitor extends Monitor {
         varToolsBuild();
         editToolsBuild();
         init();
+        monitorTable.update(() -> {
+            if (logicBuild.executor.counter == null) return;
+            if (logicBuild.executor.counter.hashCode() != varHash) init();
+        });
     }
 
     @Override
@@ -314,8 +318,6 @@ public class LogicMonitor extends Monitor {
             Element e = Core.scene.hit(Core.input.mouseX(), Core.input.mouseY(), true);
             if (e != null && e.isDescendantOf(p)) p.requestScroll();
             else if (p.hasScroll()) Core.scene.setScrollFocus(null);
-            if (logicBuild.executor.counter == null) return;
-            if (logicBuild.executor.counter.hashCode() != varHash) init();
         }).with(p -> {
             p.setupFadeScrollBars(0.5f, 0.25f);
             p.setFadeScrollBars(true);
