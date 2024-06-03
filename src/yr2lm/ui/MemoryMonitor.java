@@ -31,16 +31,16 @@ public class MemoryMonitor extends Monitor {
             super();
             binText = new ArrayList<>();
             for (int i = 0; i < 64; i++) binText.add("0");
-            setLabelProperty(label(() -> binText.get(0)).grow().get(), 0, index);
+            setLabelProperty(label(() -> binText.get(0).equals("1") ? "■" : "□").grow().get(), 0, index);
             table().grow();
             for (int i = 1; i < 12; i++) {
                 int finalI = i;
-                setLabelProperty(label(() -> binText.get(finalI)).grow().get(), finalI, index);
+                setLabelProperty(label(() -> binText.get(finalI).equals("1") ? "■" : "□").grow().get(), finalI, index);
             }
             row();
             for (int i = 12; i < 64; i++) {
                 int finalI = i;
-                setLabelProperty(label(() -> (exponent == finalI ? "[#00ffff]" : "") + binText.get(finalI)).grow().get(), finalI, index);
+                setLabelProperty(label(() -> (exponent == finalI ? "[#00ffff]" : "") + (binText.get(finalI).equals("1") ? "■" : "□")).grow().get(), finalI, index);
                 if (i % 13 == 11) row();
             }
             double[] memoryInput = editMode ? memoryBuf : memoryBuild.memory;

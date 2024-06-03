@@ -4,6 +4,10 @@ version '1.0'
 
 sourceSets.main.java.srcDirs = ["src"]
 
+tasks.withType(JavaCompile) {
+    options.encoding = "UTF-8"
+}
+
 repositories{
     mavenCentral()
     maven{ url "https://raw.githubusercontent.com/Zelaux/MindustryRepo/master/repository" }
