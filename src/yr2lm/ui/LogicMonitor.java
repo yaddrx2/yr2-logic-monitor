@@ -68,23 +68,28 @@ public class LogicMonitor extends Monitor {
 
         private String formatVarText(LExecutor.Var var) {
             if (var.isobj) {
-                if (var.objval instanceof String) return '"' + var.objval.toString() + '"';
+                if (var.objval instanceof String) return String.format("\"%s\"", var.objval);
                 if (var.objval == null) return "null";
                 if (var.objval instanceof Unit unit)
                     return String.format(
-                            "[%s#%d]\n[%s]",
+                            "%s#%d\n[%s]",
                             unit.type.name,
                             unit.id,
-                            BigDecimal.valueOf(unit.flag)
-                                    .stripTrailingZeros()
-                                    .toPlainString()
+                            doubleToString(unit.flag)
                     );
                 if (var.objval instanceof Building building)
-                    return building.block.name + '#' + building.id;
+                    return String.format("%s#%d", building.block.name, building.id);
                 return var.objval.toString();
             }
-            if (Double.isNaN(var.numval)) return String.valueOf(counter);
-            return BigDecimal.valueOf(var.numval).stripTrailingZeros().toPlainString();
+            if (Double.isNaN(var.numval) && var.name.equals("@counter")) return String.format("(%s)", counter);
+            return doubleToString(var.numval);
+        }
+
+        private String doubleToString(double value) {
+            if (Double.isNaN(value)) return "NaN";
+            if (value == Double.POSITIVE_INFINITY) return "Inf";
+            if (value == Double.NEGATIVE_INFINITY) return "-Inf";
+            return BigDecimal.valueOf(value).stripTrailingZeros().toPlainString();
         }
     }
 
@@ -138,10 +143,11 @@ public class LogicMonitor extends Monitor {
                 t.button(Icon.downSmall, Styles.emptyi, () -> {
                     String clipboard = Core.app.getClipboardText();
                     clipboard = clipboard == null ? "" : clipboard.replace("\r\n", "\n");
+                    StringBuilder sb = new StringBuilder();
                     ArrayList<CodeCell> clipboardList = LAssembler.read(clipboard, true).map(ls -> {
                         if (ls instanceof LStatements.JumpStatement jumpStatement)
                             jumpStatement.destIndex += Math.abs(line) + 1;
-                        StringBuilder sb = new StringBuilder();
+                        sb.setLength(0);
                         ls.write(sb);
                         return new CodeCell(-Math.abs(line), sb.toString(), true);
                     }).list();
@@ -149,7 +155,7 @@ public class LogicMonitor extends Monitor {
                         LStatement ls = LAssembler.read(codeCell.code, true).get(0);
                         if (ls instanceof LStatements.JumpStatement jumpStatement && jumpStatement.destIndex > Math.abs(line)) {
                             jumpStatement.destIndex += clipboardList.size();
-                            StringBuilder sb = new StringBuilder();
+                            sb.setLength(0);
                             ls.write(sb);
                             codeCell.code = sb.toString();
                         }
@@ -243,6 +249,7 @@ public class LogicMonitor extends Monitor {
             }).grow();
             t.button(Icon.trash, Styles.emptyi, () -> {
                 logicBuild.updateCode(logicBuild.code);
+                logicBuild.executor.textBuffer.setLength(0);
                 if (pause) logicPause();
                 varPageBuild();
             }).grow();
@@ -308,10 +315,19 @@ public class LogicMonitor extends Monitor {
                 p.add(new VarCell(var, var.name)).growX();
                 p.row();
             });
+            if (checkVarName("textBuffer")) {
+                p.table(t -> {
+                    t.table(tt -> tt.labelWrap("textBuffer").grow()).grow().padRight(10);
+                    t.table(tt -> tt.labelWrap(
+                            () -> String.format("%d|%s", logicBuild.executor.textBuffer.length(), logicBuild.executor.textBuffer)
+                    ).grow()).grow();
+                }).minHeight(35).growX().pad(0, 10, 0, 10);
+                p.row();
+            }
             int size = links.size();
             for (int i = 0; i < size; i++) {
                 LExecutor.Var var = links.get(i);
-                p.add(new VarCell(var, "[" + i + "] " + var.name)).growX();
+                p.add(new VarCell(var, String.format("[%d]%s", i, var.name))).growX();
                 p.row();
             }
         }).grow().update(p -> {
@@ -401,8 +417,9 @@ public class LogicMonitor extends Monitor {
         editPanel = editPage.pane(p -> {
             p.top();
             Seq<LStatement> codeList = LAssembler.read(logicBuild.code, logicBuild.block.privileged);
+            StringBuilder sb = new StringBuilder();
             for (int i = 0; i < codeList.size; i++) {
-                StringBuilder sb = new StringBuilder();
+                sb.setLength(0);
                 codeList.get(i).write(sb);
                 p.add(new CodeCell(i, sb.toString())).growX();
                 p.row();

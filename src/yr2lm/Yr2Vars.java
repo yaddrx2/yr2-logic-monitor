@@ -3,5 +3,5 @@ package yr2lm;
 import yr2lm.ui.Combination;
 
 public class Yr2Vars {
-    public final static Combination combination = new Combination("yr2lm-1.3.8");
+    public final static Combination combination = new Combination("yr2lm-1.3.9");
 }
