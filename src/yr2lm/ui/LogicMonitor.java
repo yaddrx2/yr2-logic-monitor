@@ -9,7 +9,6 @@ import arc.scene.ui.ScrollPane;
 import arc.scene.ui.TextButton;
 import arc.scene.ui.layout.Table;
 import arc.struct.Seq;
-import arc.util.Log;
 import arc.util.Time;
 import mindustry.gen.Building;
 import mindustry.gen.Icon;
@@ -337,9 +336,7 @@ public class LogicMonitor extends Monitor {
         }).with(p -> {
             p.setupFadeScrollBars(0.5f, 0.25f);
             p.setFadeScrollBars(true);
-            Log.info(varPanel == null);
             if (varPanel != null) {
-                Log.info(varPanel.getScrollPercentY());
                 float scrollPercentY = varPanel.getScrollPercentY();
                 Time.run(1f, () -> p.setScrollPercentY(scrollPercentY));
             }
@@ -432,9 +429,7 @@ public class LogicMonitor extends Monitor {
             p.setupFadeScrollBars(0.5f, 0.25f);
             p.setFadeScrollBars(true);
             p.setScrollingDisabled(true, false);
-            Log.info(editPanel == null);
             if (editPanel != null) {
-                Log.info(editPanel.getScrollPercentY());
                 float scrollPercentY = editPanel.getScrollPercentY();
                 Time.run(1f, () -> p.setScrollPercentY(scrollPercentY));
             }
