@@ -253,8 +253,7 @@ public class LogicMonitor extends Monitor {
                 varPageBuild();
             }).grow();
             ImageButton.ImageButtonStyle style = new ImageButton.ImageButtonStyle(Styles.emptyi);
-            ImageButton drawButton = t.button(Icon.eyeOffSmall, Styles.emptyi, () -> {
-            }).grow().get();
+            ImageButton drawButton = t.button(Icon.eyeOffSmall, Styles.emptyi, () -> {}).grow().get();
             drawButton.clicked(() -> {
                 drawAllVars = !drawAllVars;
                 style.imageUp = drawAllVars ? Icon.eyeSmall : Icon.eyeOffSmall;
@@ -271,15 +270,13 @@ public class LogicMonitor extends Monitor {
             t.defaults().uniform();
             t.field(varFilter, s -> varFilter = s).minWidth(0).padLeft(10).grow();
             t.button(Icon.zoom, Styles.emptyi, this::varPageBuild).grow();
-            TextButton buttonCc = t.button(filterCc ? "Cc" : "[grey]Cc", Styles.cleart, () -> {
-            }).grow().get();
+            TextButton buttonCc = t.button(filterCc ? "Cc" : "[grey]Cc", Styles.cleart, () -> {}).grow().get();
             buttonCc.clicked(() -> {
                 filterCc = !filterCc;
                 buttonCc.setText(filterCc ? "Cc" : "[grey]Cc");
                 varPageBuild();
             });
-            TextButton buttonW = t.button(filterW ? "W" : "[grey]W", Styles.cleart, () -> {
-            }).grow().get();
+            TextButton buttonW = t.button(filterW ? "W" : "[grey]W", Styles.cleart, () -> {}).grow().get();
             buttonW.clicked(() -> {
                 filterW = !filterW;
                 buttonW.setText(filterW ? "W" : "[grey]W");
@@ -356,8 +353,7 @@ public class LogicMonitor extends Monitor {
         editTools.row();
         editTools.table(t -> {
             ImageButton.ImageButtonStyle style = new ImageButton.ImageButtonStyle(Styles.emptyi);
-            ImageButton pauseButton = t.button(Icon.pause, Styles.emptyi, () -> {
-            }).grow().get();
+            ImageButton pauseButton = t.button(Icon.pause, Styles.emptyi, () -> {}).grow().get();
             t.button(Icon.left, Styles.emptyi, () -> {
                 if (pause) forward = true;
             }).grow();

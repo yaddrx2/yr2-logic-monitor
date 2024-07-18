@@ -15,6 +15,7 @@ import mindustry.ui.Styles;
 import mindustry.world.blocks.logic.LogicBlock;
 import mindustry.world.blocks.logic.MemoryBlock;
 import mindustry.world.blocks.logic.MessageBlock;
+import yr2lm.Yr2lmain;
 import yr2lm.graphics.DrawExt;
 
 import java.math.BigDecimal;
@@ -44,8 +45,7 @@ public class Combination extends Yrailiuxa2 {
                 }).grow()).grow().pad(0, 10, 0, 5);
                 t.table(tt -> {
                     ImageButton.ImageButtonStyle style = new ImageButton.ImageButtonStyle(Styles.emptyi);
-                    ImageButton visibleButton = tt.button(Icon.eyeSmall, Styles.emptyi, () -> {
-                    }).size(35).get();
+                    ImageButton visibleButton = tt.button(Icon.eyeSmall, Styles.emptyi, () -> {}).size(35).get();
                     visibleButton.clicked(() -> {
                         monitor.hidden = !monitor.hidden;
                         style.imageUp = monitor.hidden ? Icon.eyeOffSmall : Icon.eyeSmall;
@@ -80,8 +80,8 @@ public class Combination extends Yrailiuxa2 {
     private final ArrayList<Class<? extends Building>> molds;
     private final ArrayList<MonitorCell> monitorCells;
 
-    public Combination(String text) {
-        super(text);
+    public Combination() {
+        super("yr2lm-" + Vars.mods.getMod(Yr2lmain.class).meta.version);
         size.set(400, 300);
         minSize.set(200, 150);
         monitorsTable = new Table();

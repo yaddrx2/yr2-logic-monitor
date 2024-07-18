@@ -6,6 +6,8 @@ import arc.math.geom.Vec2;
 import arc.scene.event.InputEvent;
 import arc.scene.event.InputListener;
 import arc.scene.event.Touchable;
+import arc.scene.ui.Button;
+import arc.scene.ui.ImageButton;
 import arc.scene.ui.Label;
 import arc.scene.ui.layout.Table;
 import arc.util.Align;
@@ -22,7 +24,7 @@ public class Yrailiuxa2 extends Table {
     protected final Vec2 pos, size, bias;
     protected final Vec2 minSize;
     public boolean hidden = false;
-    private boolean showSizeTable = false;
+    private boolean showSizeTable = false, showMainTable = true;
 
     public Yrailiuxa2(String text) {
         name = text;
@@ -40,13 +42,21 @@ public class Yrailiuxa2 extends Table {
         sizeTableInit();
         mainTableBuild();
         update(() -> {
-            setPosition(pos.x, pos.y);
-            setSize(size.x, size.y);
+            if (showMainTable) {
+                setPosition(pos.x, pos.y);
+                setSize(size.x, size.y);
+            } else {
+                setPosition(pos.x, pos.y + size.y - 30);
+                setSize(size.x, 30);
+            }
         });
     }
+
     private void mainTableBuild() {
         clear();
-        add(headTable).growX();
+        top();
+        add(headTable).height(30).growX();
+        if (!showMainTable) return;
         row();
         if (showSizeTable) {
             table(t -> {
@@ -59,7 +69,6 @@ public class Yrailiuxa2 extends Table {
                 t.add(cornerTable).size(30);
             }).height(30).growX();
         } else add(mainTable).top().grow();
-
     }
 
     private void headTableInit(String text) {
@@ -79,6 +88,14 @@ public class Yrailiuxa2 extends Table {
         Label title = new Label(text);
         title.setAlignment(Align.left);
         headTable.add(title).pad(0, 10, 0, 10).height(30).growX();
+        ImageButton.ImageButtonStyle style = new ImageButton.ImageButtonStyle(Styles.emptyi);
+        Button visButton = headTable.button(Icon.eyeSmall, Styles.emptyi, () -> {}).size(30).right().get();
+        visButton.clicked(() -> {
+            showMainTable = !showMainTable;
+            style.imageUp = showMainTable ? Icon.eyeSmall : Icon.eyeOffSmall;
+            visButton.setStyle(style);
+            mainTableBuild();
+        });
         headTable.button(Icon.resizeSmall, Styles.emptyi, () -> {
             showSizeTable = !showSizeTable;
             mainTableBuild();
